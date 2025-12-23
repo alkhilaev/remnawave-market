@@ -1,0 +1,923 @@
+openapi: 3.0.3
+info:
+  title: Remnawave Market API
+  description: |
+    Open-source VPN subscription marketplace for Remnawave.
+
+    Features:
+    - User authentication (JWT + Email/Password, Telegram Auth in future)
+    - Balance management (deposit, withdraw)
+    - VPN subscription purchase (from balance or direct payment)
+    - Flexible tariff plans with add-ons (extra traffic, devices)
+    - Auto-renewal with YooKassa recurrent payments
+    - Admin panel for managing plans and users
+  version: 1.0.0
+  contact:
+    name: Remnawave Market
+    url: https://github.com/remnawave
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+  - url: https://api.remnawave-market.example.com/api/v1
+    description: Production
+
+tags:
+  - name: Auth
+    description: Authentication and user management
+  - name: Balance
+    description: User balance operations
+  - name: Plans
+    description: VPN tariff plans management
+  - name: Subscriptions
+    description: User VPN subscriptions
+  - name: Payments
+    description: Payment processing
+  - name: Admin
+    description: Admin operations
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ========== Auth Schemas ==========
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [USER, ADMIN]
+        balance:
+          type: number
+          format: decimal
+          description: User balance in currency
+        isEmailVerified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    RefreshRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+
+    # ========== Balance Schemas ==========
+    BalanceResponse:
+      type: object
+      properties:
+        balance:
+          type: number
+          format: decimal
+        currency:
+          type: string
+          default: RUB
+
+    DepositRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          format: decimal
+          minimum: 1
+          description: Amount to deposit
+        returnUrl:
+          type: string
+          format: uri
+          description: URL to redirect after payment
+
+    DepositResponse:
+      type: object
+      properties:
+        paymentId:
+          type: string
+        confirmationUrl:
+          type: string
+          format: uri
+          description: URL to redirect user for payment
+        amount:
+          type: number
+          format: decimal
+        status:
+          type: string
+          enum: [pending, succeeded, canceled]
+
+    # ========== Plans Schemas ==========
+    VPNPlan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Plan name (e.g., "Monthly", "Yearly")
+        description:
+          type: string
+        durationDays:
+          type: integer
+          description: Duration in days
+        basePrice:
+          type: number
+          format: decimal
+          description: Base price for the plan
+        defaultTrafficLimitGB:
+          type: integer
+          description: Default traffic limit in GB (0 = unlimited)
+        defaultDeviceLimit:
+          type: integer
+          description: Default number of devices
+        extraTrafficPricePerGB:
+          type: number
+          format: decimal
+          description: Price per additional GB
+        extraDevicePrice:
+          type: number
+          format: decimal
+          description: Price per additional device
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    CreatePlanRequest:
+      type: object
+      required:
+        - name
+        - durationDays
+        - basePrice
+        - defaultTrafficLimitGB
+        - defaultDeviceLimit
+        - extraTrafficPricePerGB
+        - extraDevicePrice
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        durationDays:
+          type: integer
+        basePrice:
+          type: number
+          format: decimal
+        defaultTrafficLimitGB:
+          type: integer
+        defaultDeviceLimit:
+          type: integer
+        extraTrafficPricePerGB:
+          type: number
+          format: decimal
+        extraDevicePrice:
+          type: number
+          format: decimal
+
+    # ========== Subscription Schemas ==========
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        planId:
+          type: string
+          format: uuid
+        plan:
+          $ref: '#/components/schemas/VPNPlan'
+        remnawaveKeyId:
+          type: string
+          description: ID of the VPN key in Remnawave
+        remnawaveUsername:
+          type: string
+          description: Username in Remnawave
+        status:
+          type: string
+          enum: [active, expired, suspended, canceled]
+        trafficLimitGB:
+          type: integer
+          description: Total traffic limit including add-ons
+        deviceLimit:
+          type: integer
+          description: Total device limit including add-ons
+        startDate:
+          type: string
+          format: date-time
+        expiryDate:
+          type: string
+          format: date-time
+        autoRenewal:
+          type: boolean
+          description: Auto-renewal enabled
+        autoRenewalPaymentMethodId:
+          type: string
+          nullable: true
+          description: YooKassa payment method ID for auto-renewal
+        createdAt:
+          type: string
+          format: date-time
+
+    PurchaseSubscriptionRequest:
+      type: object
+      required:
+        - planId
+        - paymentMethod
+      properties:
+        planId:
+          type: string
+          format: uuid
+        extraTrafficGB:
+          type: integer
+          default: 0
+          description: Additional traffic in GB
+        extraDevices:
+          type: integer
+          default: 0
+          description: Additional devices
+        paymentMethod:
+          type: string
+          enum: [balance, payment_gateway, auto]
+          description: |
+            - balance: Pay from user balance only
+            - payment_gateway: Pay via YooKassa
+            - auto: Try balance first, if insufficient redirect to payment gateway
+        autoRenewal:
+          type: boolean
+          default: false
+          description: Enable auto-renewal (requires payment_gateway or auto method)
+        returnUrl:
+          type: string
+          format: uri
+          description: URL to redirect after payment (required for payment_gateway/auto)
+
+    PurchaseSubscriptionResponse:
+      type: object
+      properties:
+        subscription:
+          $ref: '#/components/schemas/Subscription'
+        payment:
+          type: object
+          nullable: true
+          properties:
+            paymentId:
+              type: string
+            confirmationUrl:
+              type: string
+              format: uri
+            requiredAmount:
+              type: number
+              format: decimal
+              description: Amount that needs to be paid (if balance was insufficient)
+
+    # ========== Payment Schemas ==========
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [deposit, subscription_purchase, subscription_renewal]
+        amount:
+          type: number
+          format: decimal
+        status:
+          type: string
+          enum: [pending, processing, succeeded, canceled, failed]
+        provider:
+          type: string
+          enum: [yookassa, balance]
+        providerPaymentId:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    YooKassaWebhook:
+      type: object
+      description: YooKassa notification webhook payload
+
+    # ========== Error Schemas ==========
+    Error:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+        message:
+          type: string
+        error:
+          type: string
+
+paths:
+  # ========== Auth Endpoints ==========
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Get current user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ========== Balance Endpoints ==========
+  /balance:
+    get:
+      tags:
+        - Balance
+      summary: Get user balance
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /balance/deposit:
+    post:
+      tags:
+        - Balance
+      summary: Deposit money to balance
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+      responses:
+        '201':
+          description: Deposit initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepositResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ========== Plans Endpoints ==========
+  /plans:
+    get:
+      tags:
+        - Plans
+      summary: Get all active plans
+      responses:
+        '200':
+          description: List of plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VPNPlan'
+
+    post:
+      tags:
+        - Plans
+      summary: Create new plan (Admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlanRequest'
+      responses:
+        '201':
+          description: Plan created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VPNPlan'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /plans/{id}:
+    get:
+      tags:
+        - Plans
+      summary: Get plan by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Plan details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VPNPlan'
+        '404':
+          description: Plan not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      tags:
+        - Plans
+      summary: Update plan (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlanRequest'
+      responses:
+        '200':
+          description: Plan updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VPNPlan'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Plans
+      summary: Delete plan (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Plan deleted
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ========== Subscription Endpoints ==========
+  /subscriptions:
+    get:
+      tags:
+        - Subscriptions
+      summary: Get user subscriptions
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User subscriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Subscriptions
+      summary: Purchase new subscription
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseSubscriptionRequest'
+      responses:
+        '201':
+          description: Subscription purchased or payment required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseSubscriptionResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /subscriptions/{id}:
+    get:
+      tags:
+        - Subscriptions
+      summary: Get subscription details
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Subscription details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /subscriptions/{id}/cancel:
+    post:
+      tags:
+        - Subscriptions
+      summary: Cancel subscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Subscription canceled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /subscriptions/{id}/toggle-auto-renewal:
+    post:
+      tags:
+        - Subscriptions
+      summary: Toggle auto-renewal for subscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Auto-renewal updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ========== Payment Endpoints ==========
+  /payments/history:
+    get:
+      tags:
+        - Payments
+      summary: Get payment history
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Payment history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+                  total:
+                    type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/webhook/yookassa:
+    post:
+      tags:
+        - Payments
+      summary: YooKassa webhook handler
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/YooKassaWebhook'
+      responses:
+        '200':
+          description: Webhook processed
+
+  # ========== Admin Endpoints ==========
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: Get all users (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  total:
+                    type: integer
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /admin/subscriptions:
+    get:
+      tags:
+        - Admin
+      summary: Get all subscriptions (Admin only)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of subscriptions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Subscription'
+                  total:
+                    type: integer
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

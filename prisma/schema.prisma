@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  SUSPENDED
+  CANCELED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  CANCELED
+  FAILED
+}
+
+enum PaymentType {
+  DEPOSIT
+  SUBSCRIPTION_PURCHASE
+  SUBSCRIPTION_RENEWAL
+}
+
+enum PaymentProvider {
+  YOOKASSA
+  BALANCE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  balance   Decimal  @default(0) @db.Decimal(10, 2)
+
+  isEmailVerified Boolean @default(false)
+  emailVerificationToken String?
+
+  refreshToken String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+  payments      Payment[]
+
+  @@map("users")
+}
+
+model VPNPlan {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+
+  durationDays Int // Duration in days
+
+  basePrice            Decimal @db.Decimal(10, 2)
+  defaultTrafficLimitGB Int    // 0 = unlimited
+  defaultDeviceLimit   Int
+
+  extraTrafficPricePerGB Decimal @db.Decimal(10, 2)
+  extraDevicePrice       Decimal @db.Decimal(10, 2)
+
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("vpn_plans")
+}
+
+model Subscription {
+  id     String @id @default(uuid())
+  userId String
+  planId String
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan VPNPlan @relation(fields: [planId], references: [id])
+
+  // Remnawave integration
+  remnawaveKeyId   String? // VPN key ID in Remnawave
+  remnawaveUsername String? // Username in Remnawave
+
+  status SubscriptionStatus @default(ACTIVE)
+
+  trafficLimitGB Int // Total traffic including add-ons
+  deviceLimit    Int // Total devices including add-ons
+
+  startDate  DateTime
+  expiryDate DateTime
+
+  // Auto-renewal
+  autoRenewal Boolean @default(false)
+  autoRenewalPaymentMethodId String? // YooKassa payment method ID for recurring payments
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiryDate])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id     String @id @default(uuid())
+  userId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type   PaymentType
+  amount Decimal @db.Decimal(10, 2)
+  status PaymentStatus @default(PENDING)
+
+  provider          PaymentProvider
+  providerPaymentId String? // External payment ID (e.g., YooKassa payment ID)
+
+  // Metadata for storing additional info (subscription ID, etc.)
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([providerPaymentId])
+  @@map("payments")
+}
