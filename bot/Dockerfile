@@ -1,71 +1,58 @@
 # =========================================
-# Stage 1: Base
+# Stage 1: Dependencies
 # =========================================
-FROM node:20-alpine AS base
+FROM node:20-alpine AS dependencies
 
-# Устанавливаем pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Включаем pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 WORKDIR /app
 
-# =========================================
-# Stage 2: Dependencies
-# =========================================
-FROM base AS dependencies
+# Копируем конфиг и зависимости
+COPY .npmrc package.json ./
 
-# Копируем файлы зависимостей
-COPY package.json pnpm-lock.yaml* ./
-
-# Устанавливаем зависимости
-RUN pnpm install --no-frozen-lockfile
+# Устанавливаем ВСЕ зависимости
+RUN pnpm install
 
 # =========================================
-# Stage 3: Development
+# Stage 2: Builder
 # =========================================
-FROM base AS development
+FROM node:20-alpine AS builder
+
+# Включаем pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 WORKDIR /app
 
 # Копируем node_modules из dependencies
 COPY --from=dependencies /app/node_modules ./node_modules
 
+# Копируем package.json и конфиг
+COPY .npmrc package.json ./
+
 # Копируем исходный код
-COPY . .
-
-# Порт не требуется (бот работает через polling)
-# EXPOSE 3000
-
-CMD ["pnpm", "run", "dev"]
-
-# =========================================
-# Stage 4: Builder
-# =========================================
-FROM base AS builder
-
-WORKDIR /app
-
-# Копируем node_modules и исходный код
-COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
 # Собираем проект
 RUN pnpm run build
 
 # =========================================
-# Stage 5: Production
+# Stage 3: Production
 # =========================================
 FROM node:20-alpine AS production
 
-# Устанавливаем pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Включаем pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
 WORKDIR /app
 
-# Копируем только production зависимости
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --prod --no-frozen-lockfile
+# Копируем конфиг и package.json
+COPY .npmrc package.json ./
 
-# Копируем собранные файлы
+# Устанавливаем только production зависимости
+RUN pnpm install --prod
+
+# Копируем собранные файлы из builder
 COPY --from=builder /app/dist ./dist
 
 # Создаём пользователя для безопасности

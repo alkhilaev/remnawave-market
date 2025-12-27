@@ -1,0 +1,17 @@
+node_modules
+dist
+*.log
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.vscode
+.idea
+coverage
+*.md
+!README.md
+.DS_Store
+pnpm-lock.yaml
+package-lock.json
+yarn.lock

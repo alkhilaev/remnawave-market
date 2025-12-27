@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -21,6 +19,24 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: remnawave-market-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - remnawave-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
 
   # NestJS Application
   app:
@@ -45,25 +61,7 @@ services:
     networks:
       - remnawave-network
     command: >
-      sh -c "pnpm prisma migrate deploy && pnpm run start:prod"
-
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: remnawave-market-redis
-    restart: unless-stopped
-    ports:
-      - '6379:6379'
-    volumes:
-      - redis_data:/data
-    networks:
-      - remnawave-network
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    command: redis-server --appendonly yes
+      sh -c "pnpm prisma migrate deploy && pnpm prisma db seed && pnpm run start:prod"
 
   # Adminer (Database Management UI)
   adminer:
@@ -76,25 +74,6 @@ services:
       - remnawave-network
     depends_on:
       - postgres
-
-  # Telegram Bot
-  bot:
-    build:
-      context: ./bot
-      dockerfile: Dockerfile
-      target: builder
-    container_name: remnawave-market-bot
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      TELEGRAM_API_URL: http://app:3000/api/v1
-      NODE_ENV: ${NODE_ENV:-production}
-    depends_on:
-      - app
-    networks:
-      - remnawave-network
-    command: node dist/index.js
 
 volumes:
   postgres_data:

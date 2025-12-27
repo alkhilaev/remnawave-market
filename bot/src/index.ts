@@ -2,10 +2,7 @@ import { Telegraf } from 'telegraf';
 import * as dotenv from 'dotenv';
 import { BotContext } from './types/context';
 import { ApiService } from './services/api.service';
-import {
-  startHandler,
-  helpHandler,
-} from './handlers/start.handler';
+import { startHandler, helpHandler } from './handlers/start.handler';
 import {
   createPlansHandler,
   createPlanDetailsHandler,
@@ -104,7 +101,7 @@ bot.action(/^select_period_[a-zA-Z0-9-]+$/, async (ctx) => {
     '✅ Период выбран!\n\n🚧 Функционал выбора дополнений и оплаты в разработке...',
     {
       parse_mode: 'Markdown',
-    }
+    },
   );
 
   await ctx.answerCbQuery('Период выбран');
@@ -171,18 +168,30 @@ bot.action('back_to_start', async (ctx) => {
 // ЗАПУСК БОТА
 // ============================================
 
+async function waitForAPI(maxRetries = 10, delayMs = 2000): Promise<void> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const plans = await apiService.getPlans();
+      console.log(`✅ Подключение к API успешно. Найдено тарифов: ${plans.length}`);
+      return;
+    } catch (error) {
+      if (i === maxRetries - 1) {
+        console.warn('⚠️  Не удалось подключиться к API после всех попыток');
+        console.warn('⚠️  Бот запустится, но функции работы с тарифами могут не работать');
+        return;
+      }
+      console.log(`⏳ Ожидание API... попытка ${i + 1}/${maxRetries}`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
 async function main() {
   console.log('🤖 Запуск Telegram бота...');
   console.log(`📡 API URL: ${API_URL}`);
 
-  try {
-    // Проверяем доступность API
-    const plans = await apiService.getPlans();
-    console.log(`✅ Подключение к API успешно. Найдено тарифов: ${plans.length}`);
-  } catch (error) {
-    console.warn('⚠️  Не удалось подключиться к API:', error);
-    console.warn('⚠️  Бот запустится, но функции работы с тарифами могут не работать');
-  }
+  // Ждём доступности API с retry
+  await waitForAPI();
 
   // Запускаем бота
   await bot.launch();

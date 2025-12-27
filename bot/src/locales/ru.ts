@@ -137,4 +137,3 @@ ${plan.bypassTrafficEnabled ? `• Обход блокировок: ${plan.defau
 };
 
 export type Locale = typeof ru;
-test;
