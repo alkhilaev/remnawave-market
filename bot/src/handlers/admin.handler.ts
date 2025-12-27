@@ -28,7 +28,31 @@ export function isAdmin(userId: number): boolean {
 export async function requireAdmin(ctx: BotContext, next: () => Promise<void>) {
   const userId = ctx.from?.id;
 
-  if (!userId || !isAdmin(userId)) {
+  if (!userId) {
+    await ctx.answerCbQuery(t.admin.accessDenied, {
+      show_alert: true,
+    });
+    return;
+  }
+
+  // Проверяем роль через API
+  let userIsAdmin = false;
+  try {
+    const authResponse = await apiService.telegramAuth({
+      telegramId: String(userId),
+      telegramUsername: ctx.from?.username,
+      telegramFirstName: ctx.from?.first_name,
+      telegramLastName: ctx.from?.last_name,
+    });
+
+    userIsAdmin = authResponse.user.role === 'ADMIN' || authResponse.user.role === 'SUPER_ADMIN';
+  } catch (error) {
+    console.error('Ошибка при проверке прав администратора:', error);
+    // Fallback на старую проверку
+    userIsAdmin = isAdmin(userId);
+  }
+
+  if (!userIsAdmin) {
     await ctx.answerCbQuery(t.admin.accessDenied, {
       show_alert: true,
     });
@@ -127,10 +151,18 @@ export async function adminPlanDetailHandler(ctx: BotContext, planId: string) {
  */
 export async function adminTogglePlanHandler(ctx: BotContext, planId: string) {
   try {
+    const userId = ctx.from?.id;
+    if (!userId) {
+      await ctx.answerCbQuery('❌ Не удалось получить ваш ID', {
+        show_alert: true,
+      });
+      return;
+    }
+
     const plan = await apiService.getPlanById(planId);
     const newStatus = !plan.isActive;
 
-    await apiService.togglePlan(planId, newStatus);
+    await apiService.togglePlan(planId, newStatus, String(userId));
 
     await ctx.answerCbQuery(t.admin.plans.toggled(newStatus), {
       show_alert: false,
@@ -138,38 +170,50 @@ export async function adminTogglePlanHandler(ctx: BotContext, planId: string) {
 
     // Обновляем сообщение с новым статусом
     await adminPlanDetailHandler(ctx, planId);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Ошибка при изменении статуса тарифа:', error);
-    await ctx.answerCbQuery(t.errors.apiError, {
+
+    // Проверяем детали ошибки из API
+    let errorMessage = t.errors.apiError;
+    if (error?.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error?.message) {
+      errorMessage = error.message;
+    }
+
+    await ctx.answerCbQuery(`❌ ${errorMessage}`, {
       show_alert: true,
     });
   }
 }
 
 /**
+ * Редактирование тарифа (заглушка)
+ */
+export async function adminEditPlanHandler(ctx: BotContext, planId: string) {
+  await ctx.answerCbQuery('⚠️ Редактирование тарифов пока не реализовано', {
+    show_alert: true,
+  });
+}
+
+/**
  * Статистика (заглушка)
  */
 export async function adminStatsHandler(ctx: BotContext) {
-  await ctx.editMessageText(
-    `${t.admin.stats.title}\n\n${t.admin.stats.inDevelopment}`,
-    {
-      parse_mode: 'Markdown',
-      ...Markup.inlineKeyboard([[Markup.button.callback(t.common.back, 'admin_panel')]]),
-    },
-  );
+  await ctx.editMessageText(`${t.admin.stats.title}\n\n${t.admin.stats.inDevelopment}`, {
+    parse_mode: 'Markdown',
+    ...Markup.inlineKeyboard([[Markup.button.callback(t.common.back, 'admin_panel')]]),
+  });
 }
 
 /**
  * Управление пользователями (заглушка)
  */
 export async function adminUsersHandler(ctx: BotContext) {
-  await ctx.editMessageText(
-    `${t.admin.users.title}\n\n${t.admin.users.inDevelopment}`,
-    {
-      parse_mode: 'Markdown',
-      ...Markup.inlineKeyboard([[Markup.button.callback(t.common.back, 'admin_panel')]]),
-    },
-  );
+  await ctx.editMessageText(`${t.admin.users.title}\n\n${t.admin.users.inDevelopment}`, {
+    parse_mode: 'Markdown',
+    ...Markup.inlineKeyboard([[Markup.button.callback(t.common.back, 'admin_panel')]]),
+  });
 }
 
 /**

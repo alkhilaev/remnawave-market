@@ -21,6 +21,7 @@ import {
   LoginDto,
   RefreshTokenDto,
   AuthResponseDto,
+  TelegramAuthDto,
 } from '../../auth/dto';
 
 @ApiTags('Авторизация')
@@ -88,9 +89,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'Невалидный refresh токен',
   })
-  async refresh(
-    @Body() refreshTokenDto: RefreshTokenDto,
-  ): Promise<AuthResponseDto> {
+  async refresh(@Body() refreshTokenDto: RefreshTokenDto): Promise<AuthResponseDto> {
     return this.authService.refreshTokens(refreshTokenDto.refreshToken);
   }
 
@@ -118,5 +117,24 @@ export class AuthController {
     // В текущей реализации JWT токены stateless,
     // поэтому логаут происходит на клиенте путём удаления токенов
     return { message: 'Успешный выход' };
+  }
+
+  @Post('telegram')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Telegram авторизация',
+    description:
+      'Авторизация пользователя через Telegram. Создаёт пользователя если не существует.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Успешная авторизация',
+    type: AuthResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Некорректные данные',
+  })
+  async telegramAuth(@Body() telegramAuthDto: TelegramAuthDto): Promise<AuthResponseDto> {
+    return this.authService.telegramAuth(telegramAuthDto);
   }
 }

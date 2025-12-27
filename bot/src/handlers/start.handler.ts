@@ -1,6 +1,7 @@
 import { Markup } from 'telegraf';
 import { BotContext } from '../types/context';
 import { currentLocale as t } from '../locales';
+import { apiService } from '../index';
 
 /**
  * Проверка является ли пользователь администратором
@@ -29,7 +30,24 @@ export async function startHandler(ctx: BotContext) {
     return;
   }
 
-  const userIsAdmin = isAdmin(userId);
+  // Авторизуем пользователя через API и получаем его роль
+  let userIsAdmin = false;
+  try {
+    const authResponse = await apiService.telegramAuth({
+      telegramId: String(userId),
+      telegramUsername: ctx.from?.username,
+      telegramFirstName: ctx.from?.first_name,
+      telegramLastName: ctx.from?.last_name,
+    });
+
+    // Проверяем роль из API (ADMIN или SUPER_ADMIN)
+    userIsAdmin = authResponse.user.role === 'ADMIN' || authResponse.user.role === 'SUPER_ADMIN';
+  } catch (error) {
+    console.error('Ошибка при авторизации пользователя:', error);
+    // Fallback на старую проверку по TELEGRAM_ADMIN_IDS
+    userIsAdmin = isAdmin(userId);
+  }
+
   const welcomeMessage = userIsAdmin ? t.start.adminWelcome : t.start.welcome;
 
   if (userIsAdmin) {

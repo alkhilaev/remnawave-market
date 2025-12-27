@@ -14,6 +14,7 @@ import {
   adminPlansHandler,
   adminPlanDetailHandler,
   adminTogglePlanHandler,
+  adminEditPlanHandler,
   adminStatsHandler,
   adminUsersHandler,
   backToStartHandler,
@@ -47,6 +48,33 @@ bot.use((ctx, next) => {
     }
     ctx.session = sessions.get(userId);
   }
+  return next();
+});
+
+// Middleware для автоматической синхронизации данных пользователя
+bot.use(async (ctx, next) => {
+  const userId = ctx.from?.id;
+
+  if (userId) {
+    try {
+      // Обновляем данные пользователя при каждом взаимодействии
+      const authResponse = await apiService.telegramAuth({
+        telegramId: String(userId),
+        telegramUsername: ctx.from?.username,
+        telegramFirstName: ctx.from?.first_name,
+        telegramLastName: ctx.from?.last_name,
+      });
+
+      // Сохраняем JWT токен для дальнейших запросов
+      if (authResponse.accessToken) {
+        apiService.setToken(String(userId), authResponse.accessToken);
+      }
+    } catch (error) {
+      // Игнорируем ошибки синхронизации, чтобы не блокировать работу бота
+      console.error('Ошибка при синхронизации данных пользователя:', error);
+    }
+  }
+
   return next();
 });
 
@@ -144,6 +172,14 @@ bot.action(/^admin_plan_toggle_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
 
   const planId = ctx.callbackQuery.data.replace('admin_plan_toggle_', '');
   await adminTogglePlanHandler(ctx, planId);
+});
+
+// Редактирование тарифа
+bot.action(/^admin_plan_edit_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+
+  const planId = ctx.callbackQuery.data.replace('admin_plan_edit_', '');
+  await adminEditPlanHandler(ctx, planId);
 });
 
 // Статистика
