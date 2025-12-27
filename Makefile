@@ -1,7 +1,6 @@
 .PHONY: help install dev build start stop restart clean \
 	prisma-generate prisma-migrate prisma-migrate-deploy prisma-studio prisma-seed \
-	docker-dev-build docker-dev-up docker-dev-down docker-dev-logs docker-dev-logs-app docker-dev-reload \
-	docker-build docker-up docker-down docker-logs docker-reload docker-clean \
+	docker-build docker-up docker-down docker-logs docker-logs-app docker-logs-bot docker-restart docker-reload docker-clean \
 	test test-watch test-cov test-e2e lint format setup dev-full db-reset db-push
 
 help: ## Показать список доступных команд
@@ -67,61 +66,42 @@ prisma-seed: ## 🌱 Наполнить БД тестовыми данными
 	pnpm run prisma:seed
 
 # ==========================================
-# Docker команды - Разработка
+# Docker команды
 # ==========================================
 
-docker-dev-build: ## 🏗️  Собрать Docker образ (dev)
-	@echo "🏗️  Собираем Docker образ для разработки..."
-	docker compose -f docker-compose.dev.yml build
-
-docker-dev-up: ## 🐳 Поднять контейнеры (dev, detached)
-	@echo "🐳 Поднимаем контейнеры для разработки..."
-	docker compose -f docker-compose.dev.yml up -d
-
-docker-dev-down: ## 🛑 Остановить контейнеры (dev)
-	@echo "🛑 Останавливаем контейнеры для разработки..."
-	docker compose -f docker-compose.dev.yml down
-
-docker-dev-logs: ## 📡 Показать логи контейнеров (dev)
-	@echo "📡 Логи контейнеров для разработки..."
-	docker compose -f docker-compose.dev.yml logs -f
-
-docker-dev-logs-app: ## 📱 Показать логи приложения (dev)
-	@echo "📱 Логи приложения..."
-	docker compose -f docker-compose.dev.yml logs -f app
-
-docker-dev-restart: ## ⚡ Быстрый рестарт приложения (без пересборки)
-	@echo "⚡ Перезапускаем приложение..."
-	docker compose -f docker-compose.dev.yml restart app
-
-docker-dev-reload: docker-dev-down docker-dev-build docker-dev-up ## 🔄 Пересобрать и перезапустить (dev)
-
-# ==========================================
-# Docker команды - Production
-# ==========================================
-
-docker-build: ## 🏗️  Собрать Docker образ (prod)
-	@echo "🏗️  Собираем Docker образ для production..."
+docker-build: ## 🏗️  Собрать Docker образы
+	@echo "🏗️  Собираем Docker образы..."
 	docker compose build
 
-docker-up: ## 🐳 Поднять контейнеры (prod, detached)
-	@echo "🐳 Поднимаем контейнеры для production..."
+docker-up: ## 🐳 Поднять контейнеры (detached)
+	@echo "🐳 Поднимаем контейнеры..."
 	docker compose up -d
 
-docker-down: ## 🛑 Остановить контейнеры (prod)
+docker-down: ## 🛑 Остановить контейнеры
 	@echo "🛑 Останавливаем контейнеры..."
 	docker compose down
 
-docker-logs: ## 📡 Показать логи контейнеров (prod)
+docker-logs: ## 📡 Показать логи всех контейнеров
 	@echo "📡 Логи контейнеров..."
 	docker compose logs -f
 
-docker-reload: docker-down docker-build docker-up ## 🔄 Пересобрать и перезапустить (prod)
+docker-logs-app: ## 📱 Показать логи приложения
+	@echo "📱 Логи приложения..."
+	docker compose logs -f app
+
+docker-logs-bot: ## 🤖 Показать логи бота
+	@echo "🤖 Логи бота..."
+	docker compose logs -f bot
+
+docker-restart: ## ⚡ Быстрый рестарт сервисов (без пересборки)
+	@echo "⚡ Перезапускаем сервисы..."
+	docker compose restart
+
+docker-reload: docker-down docker-build docker-up ## 🔄 Пересобрать и перезапустить
 
 docker-clean: ## 🗑️  Удалить контейнеры и volumes
 	@echo "🗑️  Удаляем контейнеры и volumes..."
 	docker compose down -v
-	docker compose -f docker-compose.dev.yml down -v
 
 # ==========================================
 # Тестирование
@@ -166,12 +146,12 @@ setup: install prisma-generate ## ⚙️  Начальная настройка 
 	@echo "📝 Не забудьте:"
 	@echo "  1️⃣  Скопировать .env.example в .env"
 	@echo "  2️⃣  Обновить .env с вашими настройками"
-	@echo "  3️⃣  Запустить 'make docker-dev-build' для сборки образа"
-	@echo "  4️⃣  Запустить 'make docker-dev-up' для запуска в Docker"
+	@echo "  3️⃣  Запустить 'make docker-build' для сборки образов"
+	@echo "  4️⃣  Запустить 'make docker-up' для запуска в Docker"
 	@echo "  5️⃣  Или 'make dev' для локального запуска"
 	@echo ""
 
-dev-full: docker-dev-build docker-dev-up ## 🚀 Запустить полное dev окружение в Docker
+dev-full: docker-build docker-up ## 🚀 Запустить полное окружение в Docker
 
 # ==========================================
 # База данных

@@ -48,13 +48,13 @@ export class AuthService {
     });
 
     // Генерируем токены
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email!, user.role);
 
     return {
       ...tokens,
       user: {
         id: user.id,
-        email: user.email,
+        email: user.email!,
         role: user.role,
         balance: Number(user.balance),
       },
@@ -77,20 +77,20 @@ export class AuthService {
     }
 
     // Проверяем пароль
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password!);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Неверный email или пароль');
     }
 
     // Генерируем токены
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email!, user.role);
 
     return {
       ...tokens,
       user: {
         id: user.id,
-        email: user.email,
+        email: user.email!,
         role: user.role,
         balance: Number(user.balance),
       },
@@ -117,13 +117,13 @@ export class AuthService {
       }
 
       // Генерируем новые токены
-      const tokens = await this.generateTokens(user.id, user.email, user.role);
+      const tokens = await this.generateTokens(user.id, user.email!, user.role);
 
       return {
         ...tokens,
         user: {
           id: user.id,
-          email: user.email,
+          email: user.email!,
           role: user.role,
           balance: Number(user.balance),
         },

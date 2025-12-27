@@ -45,8 +45,9 @@ lerna-debug.log*
 .env.*.local
 
 # Prisma
-prisma/migrations/*
-!prisma/migrations/.gitkeep
+# Миграции должны быть в git
+# prisma/migrations/*
+# !prisma/migrations/.gitkeep
 
 # Docker
 docker-compose.override.yml

@@ -27,6 +27,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: builder
     container_name: remnawave-market-app
     restart: unless-stopped
     ports:
@@ -35,14 +36,12 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/remnawave_market?schema=public
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-production}
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - remnawave-network
-    volumes:
-      - ./prisma:/app/prisma
     command: >
       sh -c "pnpm prisma migrate deploy && pnpm run start:prod"
 
@@ -57,6 +56,25 @@ services:
       - remnawave-network
     depends_on:
       - postgres
+
+  # Telegram Bot
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+      target: builder
+    container_name: remnawave-market-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      TELEGRAM_API_URL: http://app:3000/api/v1
+      NODE_ENV: ${NODE_ENV:-production}
+    depends_on:
+      - app
+    networks:
+      - remnawave-network
+    command: node dist/index.js
 
 volumes:
   postgres_data:

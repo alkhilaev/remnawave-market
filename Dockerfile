@@ -49,7 +49,7 @@ COPY package.json pnpm-workspace.yaml .npmrc ./
 COPY prisma ./prisma/
 
 # Устанавливаем зависимости
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Копируем исходный код
 COPY . .
@@ -78,7 +78,7 @@ COPY package.json pnpm-workspace.yaml .npmrc ./
 COPY prisma ./prisma/
 
 # Устанавливаем только production зависимости
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod
 
 # Генерируем Prisma Client
 RUN pnpm prisma generate
