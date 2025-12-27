@@ -28,21 +28,26 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('Remnawave Market API')
-    .setDescription('Open-source VPN subscription marketplace for Remnawave')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger documentation (опционально, управляется через .env)
+  const swaggerEnabled = configService.get('SWAGGER_ENABLED') === 'true';
+  if (swaggerEnabled) {
+    const config = new DocumentBuilder()
+      .setTitle('Remnawave Market API')
+      .setDescription('Open-source VPN subscription marketplace for Remnawave')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document);
+  }
 
   const port = configService.get('PORT') || 3000;
   await app.listen(port);
 
   console.log(`🚀 Application is running on: http://localhost:${port}/${apiPrefix}`);
-  console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
+  if (swaggerEnabled) {
+    console.log(`📚 Swagger documentation: http://localhost:${port}/docs`);
+  }
 }
 
 bootstrap();

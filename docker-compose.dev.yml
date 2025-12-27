@@ -51,7 +51,6 @@ services:
       - ./nest-cli.json:/app/nest-cli.json
       # Исключаем node_modules из хоста (используем из контейнера)
       - /app/node_modules
-      - /app/dist
     command: >
       sh -c "pnpm prisma generate && pnpm prisma migrate deploy && pnpm run start:dev"
 
