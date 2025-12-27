@@ -171,6 +171,7 @@ export class PlansService {
 
   /**
    * Включить/выключить тариф
+   * Инвалидирует кэш после изменения
    */
   async togglePlan(id: string, toggleDto: TogglePlanDto) {
     await this.findOne(id, true);
@@ -186,7 +187,7 @@ export class PlansService {
       }
     }
 
-    return this.prisma.vPNPlan.update({
+    const updated = await this.prisma.vPNPlan.update({
       where: { id },
       data: { isActive: toggleDto.isActive },
       include: {
@@ -196,6 +197,13 @@ export class PlansService {
         extraDevices: true,
       },
     });
+
+    // Инвалидируем кэш
+    await this.invalidatePlansCache();
+    await this.cacheManager.del(`plan:${id}:active-only`);
+    await this.cacheManager.del(`plan:${id}:with-inactive`);
+
+    return updated;
   }
 
   /**

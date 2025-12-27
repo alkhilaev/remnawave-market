@@ -15,11 +15,12 @@ export class ApiService {
   }
 
   /**
-   * Получить все активные тарифы
+   * Получить все активные тарифы (или включая неактивные для админов)
    */
-  async getPlans(): Promise<VPNPlan[]> {
+  async getPlans(showInactive: boolean = false): Promise<VPNPlan[]> {
     try {
-      const response = await this.client.get<VPNPlan[]>('/plans');
+      const params = showInactive ? { showInactive: 'true' } : {};
+      const response = await this.client.get<VPNPlan[]>('/plans', { params });
       return response.data;
     } catch (error) {
       console.error('Ошибка при получении тарифов:', error);
@@ -38,6 +39,13 @@ export class ApiService {
       console.error(`Ошибка при получении тарифа ${id}:`, error);
       throw new Error('Не удалось получить тариф');
     }
+  }
+
+  /**
+   * Получить конкретный тариф по ID (алиас для админ панели)
+   */
+  async getPlanById(id: string): Promise<VPNPlan> {
+    return this.getPlan(id);
   }
 
   /**
@@ -89,5 +97,21 @@ export class ApiService {
     }
 
     return { totalPrice, breakdown };
+  }
+
+  /**
+   * Переключить активность тарифа (для админов)
+   */
+  async togglePlan(id: string, isActive: boolean): Promise<VPNPlan> {
+    try {
+      // TODO: Добавить JWT токен для авторизации админа
+      const response = await this.client.patch<VPNPlan>(`/plans/${id}/toggle`, {
+        isActive,
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Ошибка при изменении статуса тарифа ${id}:`, error);
+      throw new Error('Не удалось изменить статус тарифа');
+    }
   }
 }

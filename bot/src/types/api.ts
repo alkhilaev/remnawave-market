@@ -9,6 +9,8 @@ export interface VPNPlan {
   defaultDeviceLimit: number;
   bypassTrafficEnabled: boolean;
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
   periods: PlanPeriod[];
   extraTraffic: PlanExtraTraffic[];
   extraBypassTraffic: PlanExtraBypassTraffic[];

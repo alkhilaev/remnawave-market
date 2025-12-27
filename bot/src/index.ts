@@ -11,6 +11,16 @@ import {
   createPlanDetailsHandler,
   createSelectPlanHandler,
 } from './handlers/plans.handler';
+import {
+  requireAdmin,
+  adminPanelHandler,
+  adminPlansHandler,
+  adminPlanDetailHandler,
+  adminTogglePlanHandler,
+  adminStatsHandler,
+  adminUsersHandler,
+  backToStartHandler,
+} from './handlers/admin.handler';
 
 // Загружаем переменные окружения
 dotenv.config();
@@ -26,8 +36,8 @@ if (!BOT_TOKEN) {
 // Инициализация бота
 const bot = new Telegraf<BotContext>(BOT_TOKEN);
 
-// Инициализация API сервиса
-const apiService = new ApiService(API_URL);
+// Инициализация API сервиса (экспортируем для использования в handlers)
+export const apiService = new ApiService(API_URL);
 
 // Простая сессия в памяти (для production использовать Redis/БД)
 const sessions = new Map<number, any>();
@@ -98,6 +108,63 @@ bot.action(/^select_period_[a-zA-Z0-9-]+$/, async (ctx) => {
   );
 
   await ctx.answerCbQuery('Период выбран');
+});
+
+// ============================================
+// АДМИН ПАНЕЛЬ (только для администраторов)
+// ============================================
+
+// Главная админ панель
+bot.action('admin_panel', requireAdmin, async (ctx) => {
+  await adminPanelHandler(ctx);
+  await ctx.answerCbQuery();
+});
+
+// Управление тарифами
+bot.action('admin_plans', requireAdmin, async (ctx) => {
+  await adminPlansHandler(ctx);
+  await ctx.answerCbQuery();
+});
+
+// Просмотр конкретного тарифа (для редактирования)
+bot.action(/^admin_plan_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+
+  const planId = ctx.callbackQuery.data.replace('admin_plan_', '');
+
+  // Проверяем, не является ли это действием toggle
+  if (planId.startsWith('toggle_')) {
+    return;
+  }
+
+  await adminPlanDetailHandler(ctx, planId);
+  await ctx.answerCbQuery();
+});
+
+// Переключение активности тарифа
+bot.action(/^admin_plan_toggle_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+
+  const planId = ctx.callbackQuery.data.replace('admin_plan_toggle_', '');
+  await adminTogglePlanHandler(ctx, planId);
+});
+
+// Статистика
+bot.action('admin_stats', requireAdmin, async (ctx) => {
+  await adminStatsHandler(ctx);
+  await ctx.answerCbQuery();
+});
+
+// Пользователи
+bot.action('admin_users', requireAdmin, async (ctx) => {
+  await adminUsersHandler(ctx);
+  await ctx.answerCbQuery();
+});
+
+// Возврат в главное меню (из админ панели)
+bot.action('back_to_start', async (ctx) => {
+  await backToStartHandler(ctx);
+  await ctx.answerCbQuery();
 });
 
 // ============================================
