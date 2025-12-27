@@ -115,9 +115,13 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "lint-staged": {
-    "*.ts": [
+    "src/**/*.ts": [
       "eslint --fix",
       "prettier --write"
+    ],
+    "bot/src/**/*.ts": [
+      "bash -c 'cd bot && eslint src --fix'",
+      "bash -c 'cd bot && prettier --write \"src/**/*.ts\"'"
     ]
   }
 }

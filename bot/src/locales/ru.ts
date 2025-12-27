@@ -110,12 +110,11 @@ ${plan.bypassTrafficEnabled ? `• Обход блокировок: ${plan.defau
 
 *Создан:* ${new Date(plan.createdAt).toLocaleString('ru-RU')}`,
       buttons: {
-        toggle: (isActive: boolean) => isActive ? '❌ Деактивировать' : '✅ Активировать',
+        toggle: (isActive: boolean) => (isActive ? '❌ Деактивировать' : '✅ Активировать'),
         edit: '✏️ Редактировать',
         back: '🔙 Назад к списку',
       },
-      toggled: (isActive: boolean) =>
-        `✅ Тариф ${isActive ? 'активирован' : 'деактивирован'}`,
+      toggled: (isActive: boolean) => `✅ Тариф ${isActive ? 'активирован' : 'деактивирован'}`,
     },
     stats: {
       title: '📊 **Статистика**',
@@ -138,3 +137,4 @@ ${plan.bypassTrafficEnabled ? `• Обход блокировок: ${plan.defau
 };
 
 export type Locale = typeof ru;
+test;
