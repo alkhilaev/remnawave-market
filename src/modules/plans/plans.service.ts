@@ -3,20 +3,26 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePlanDto, UpdatePlanDto, TogglePlanDto } from '../../plans/dto';
 
 @Injectable()
 export class PlansService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   /**
    * Создать новый тариф
+   * Инвалидирует кэш после создания
    */
   async create(createPlanDto: CreatePlanDto) {
-    const { periods, extraTraffic, extraBypassTraffic, extraDevices, ...planData } =
-      createPlanDto;
+    const { periods, extraTraffic, extraBypassTraffic, extraDevices, ...planData } = createPlanDto;
 
     const plan = await this.prisma.vPNPlan.create({
       data: {
@@ -24,9 +30,7 @@ export class PlansService {
         isActive: planData.isActive ?? true,
         periods: periods ? { create: periods } : undefined,
         extraTraffic: extraTraffic ? { create: extraTraffic } : undefined,
-        extraBypassTraffic: extraBypassTraffic
-          ? { create: extraBypassTraffic }
-          : undefined,
+        extraBypassTraffic: extraBypassTraffic ? { create: extraBypassTraffic } : undefined,
         extraDevices: extraDevices ? { create: extraDevices } : undefined,
       },
       include: {
@@ -37,14 +41,35 @@ export class PlansService {
       },
     });
 
+    // Инвалидируем кэш списка тарифов
+    await this.invalidatePlansCache();
+
     return plan;
   }
 
   /**
+   * Инвалидация кэша тарифов
+   */
+  private async invalidatePlansCache() {
+    await this.cacheManager.del('plans:all:active-only');
+    await this.cacheManager.del('plans:all:with-inactive');
+  }
+
+  /**
    * Получить все тарифы (админ видит все, пользователи только активные)
+   * Использует Redis кэш для активных тарифов
    */
   async findAll(showInactive: boolean = false) {
-    return this.prisma.vPNPlan.findMany({
+    const cacheKey = `plans:all:${showInactive ? 'with-inactive' : 'active-only'}`;
+
+    // Пытаемся получить из кэша
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // Если нет в кэше - запрашиваем из БД
+    const plans = await this.prisma.vPNPlan.findMany({
       where: showInactive ? {} : { isActive: true },
       include: {
         periods: { where: showInactive ? {} : { isActive: true } },
@@ -54,12 +79,26 @@ export class PlansService {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    // Сохраняем в кэш
+    await this.cacheManager.set(cacheKey, plans, 300000); // 5 минут
+
+    return plans;
   }
 
   /**
    * Получить тариф по ID
+   * Использует Redis кэш
    */
   async findOne(id: string, showInactive: boolean = false) {
+    const cacheKey = `plan:${id}:${showInactive ? 'with-inactive' : 'active-only'}`;
+
+    // Пытаемся получить из кэша
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const plan = await this.prisma.vPNPlan.findUnique({
       where: { id },
       include: {
@@ -74,19 +113,23 @@ export class PlansService {
       throw new NotFoundException(`Тариф с ID ${id} не найден`);
     }
 
+    // Сохраняем в кэш
+    await this.cacheManager.set(cacheKey, plan, 300000); // 5 минут
+
     return plan;
   }
 
   /**
    * Обновить тариф
+   * Инвалидирует кэш после обновления
    */
   async update(id: string, updatePlanDto: UpdatePlanDto) {
     await this.findOne(id, true); // Проверка существования
 
-    const { periods, extraTraffic, extraBypassTraffic, extraDevices, ...planData } =
-      updatePlanDto;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { periods, extraTraffic, extraBypassTraffic, extraDevices, ...planData } = updatePlanDto;
 
-    return this.prisma.vPNPlan.update({
+    const updated = await this.prisma.vPNPlan.update({
       where: { id },
       data: planData,
       include: {
@@ -96,6 +139,13 @@ export class PlansService {
         extraDevices: true,
       },
     });
+
+    // Инвалидируем кэш
+    await this.invalidatePlansCache();
+    await this.cacheManager.del(`plan:${id}:active-only`);
+    await this.cacheManager.del(`plan:${id}:with-inactive`);
+
+    return updated;
   }
 
   /**
@@ -132,9 +182,7 @@ export class PlansService {
       });
 
       if (activePlansCount <= 1) {
-        throw new BadRequestException(
-          'Невозможно выключить последний активный тариф',
-        );
+        throw new BadRequestException('Невозможно выключить последний активный тариф');
       }
     }
 
@@ -153,7 +201,10 @@ export class PlansService {
   /**
    * Добавить период к тарифу
    */
-  async addPeriod(planId: string, periodData: { durationDays: number; price: number; isActive?: boolean }) {
+  async addPeriod(
+    planId: string,
+    periodData: { durationDays: number; price: number; isActive?: boolean },
+  ) {
     await this.findOne(planId, true);
 
     // Проверка на дублирование

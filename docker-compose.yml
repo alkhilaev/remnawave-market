@@ -40,10 +40,30 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - remnawave-network
     command: >
       sh -c "pnpm prisma migrate deploy && pnpm run start:prod"
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: remnawave-market-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - remnawave-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
 
   # Adminer (Database Management UI)
   adminer:
@@ -78,6 +98,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:
