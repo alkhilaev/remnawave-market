@@ -68,23 +68,95 @@ model VPNPlan {
   name        String
   description String?
 
-  durationDays Int // Duration in days
+  // Лимиты по умолчанию
+  defaultTrafficLimitGB        Int // 0 = безлимит
+  defaultBypassTrafficLimitGB  Int // Лимит обхода моб. заглушек
+  defaultDeviceLimit           Int
 
-  basePrice            Decimal @db.Decimal(10, 2)
-  defaultTrafficLimitGB Int    // 0 = unlimited
-  defaultDeviceLimit   Int
-
-  extraTrafficPricePerGB Decimal @db.Decimal(10, 2)
-  extraDevicePrice       Decimal @db.Decimal(10, 2)
+  // Опции функционала
+  bypassTrafficEnabled Boolean  @default(true) // Включен ли bypass трафик для этого тарифа
 
   isActive  Boolean  @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  subscriptions Subscription[]
+  // Связи с периодами и дополнениями
+  periods         PlanPeriod[]
+  extraTraffic    PlanExtraTraffic[]
+  extraBypassTraffic PlanExtraBypassTraffic[]
+  extraDevices    PlanExtraDevice[]
+  subscriptions   Subscription[]
 
   @@map("vpn_plans")
+}
+
+// Периоды подписки для тарифа (1 месяц, 3 месяца и т.д.)
+model PlanPeriod {
+  id       String  @id @default(uuid())
+  planId   String
+  plan     VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  durationDays Int     // Длительность в днях (30, 90, 180, 365 и т.д.)
+  price        Decimal @db.Decimal(10, 2)
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([planId, durationDays])
+  @@map("plan_periods")
+}
+
+// Дополнительный трафик (2000 GB, 4000 GB и т.д.)
+model PlanExtraTraffic {
+  id       String  @id @default(uuid())
+  planId   String
+  plan     VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  trafficGB Int     // Количество GB
+  price     Decimal @db.Decimal(10, 2)
+  isActive  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([planId, trafficGB])
+  @@map("plan_extra_traffic")
+}
+
+// Дополнительный трафик обхода заглушек
+model PlanExtraBypassTraffic {
+  id       String  @id @default(uuid())
+  planId   String
+  plan     VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  bypassTrafficGB Int     // Количество GB для обхода заглушек
+  price           Decimal @db.Decimal(10, 2)
+  isActive        Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([planId, bypassTrafficGB])
+  @@map("plan_extra_bypass_traffic")
+}
+
+// Дополнительные устройства (4 устройства, 6 устройств и т.д.)
+model PlanExtraDevice {
+  id       String  @id @default(uuid())
+  planId   String
+  plan     VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  deviceCount Int     // Количество устройств
+  price       Decimal @db.Decimal(10, 2)
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([planId, deviceCount])
+  @@map("plan_extra_devices")
 }
 
 model Subscription {
@@ -101,11 +173,15 @@ model Subscription {
 
   status SubscriptionStatus @default(ACTIVE)
 
-  trafficLimitGB Int // Total traffic including add-ons
-  deviceLimit    Int // Total devices including add-ons
+  // Лимиты (включая купленные дополнения)
+  trafficLimitGB       Int // Общий лимит трафика
+  bypassTrafficLimitGB Int // Лимит обхода заглушек
+  deviceLimit          Int // Количество устройств
 
-  startDate  DateTime
-  expiryDate DateTime
+  // Период подписки
+  durationDays Int      // Длительность в днях
+  startDate    DateTime
+  expiryDate   DateTime
 
   // Auto-renewal
   autoRenewal Boolean @default(false)
