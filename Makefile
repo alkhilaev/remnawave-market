@@ -90,6 +90,10 @@ docker-dev-logs-app: ## 📱 Показать логи приложения (dev
 	@echo "📱 Логи приложения..."
 	docker compose -f docker-compose.dev.yml logs -f app
 
+docker-dev-restart: ## ⚡ Быстрый рестарт приложения (без пересборки)
+	@echo "⚡ Перезапускаем приложение..."
+	docker compose -f docker-compose.dev.yml restart app
+
 docker-dev-reload: docker-dev-down docker-dev-build docker-dev-up ## 🔄 Пересобрать и перезапустить (dev)
 
 # ==========================================

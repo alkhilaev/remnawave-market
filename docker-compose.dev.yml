@@ -49,6 +49,7 @@ services:
       - ./prisma:/app/prisma
       - ./tsconfig.json:/app/tsconfig.json
       - ./nest-cli.json:/app/nest-cli.json
+      - ./.env:/app/.env
       # Исключаем node_modules из хоста (используем из контейнера)
       - /app/node_modules
     command: >

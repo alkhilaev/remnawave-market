@@ -3,6 +3,9 @@
 # ==========================================
 FROM node:20-alpine AS development
 
+# Устанавливаем системные зависимости (OpenSSL для Prisma)
+RUN apk add --no-cache openssl libc6-compat
+
 # Устанавливаем pnpm
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
@@ -33,6 +36,9 @@ CMD ["pnpm", "run", "start:dev"]
 # ==========================================
 FROM node:20-alpine AS builder
 
+# Устанавливаем системные зависимости (OpenSSL для Prisma)
+RUN apk add --no-cache openssl libc6-compat
+
 # Устанавливаем pnpm
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 
@@ -58,6 +64,9 @@ RUN pnpm run build
 # Production Stage (для продакшена)
 # ==========================================
 FROM node:20-alpine AS production
+
+# Устанавливаем системные зависимости (OpenSSL для Prisma)
+RUN apk add --no-cache openssl libc6-compat
 
 # Устанавливаем pnpm
 RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
