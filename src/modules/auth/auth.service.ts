@@ -6,15 +6,17 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../prisma/prisma.service';
+import { UserRepository } from '@common/repositories/user.repository';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto, LoginDto, AuthResponseDto } from '../../auth/dto';
 import { Role } from '@prisma/client';
+import { HttpExceptionWithErrorCode } from '@common/exceptions/http-exception-with-error-code';
+import { ERRORS } from '@common/constants/errors';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
@@ -26,25 +28,25 @@ export class AuthService {
     const { email, password } = registerDto;
 
     // Проверяем существование пользователя
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await this.userRepository.findByEmail(email);
 
     if (existingUser) {
-      throw new ConflictException('Пользователь с таким email уже существует');
+      throw new HttpExceptionWithErrorCode(
+        ERRORS.USER_ALREADY_EXISTS.message,
+        ERRORS.USER_ALREADY_EXISTS.code,
+        ERRORS.USER_ALREADY_EXISTS.httpCode,
+      );
     }
 
     // Хешируем пароль
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Создаём пользователя
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        role: Role.USER,
-        balance: 0,
-      },
+    const user = await this.userRepository.create({
+      email,
+      password: hashedPassword,
+      role: Role.USER,
+      balance: 0,
     });
 
     // Генерируем токены
@@ -68,19 +70,25 @@ export class AuthService {
     const { email, password } = loginDto;
 
     // Находим пользователя
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
-      throw new UnauthorizedException('Неверный email или пароль');
+      throw new HttpExceptionWithErrorCode(
+        ERRORS.INVALID_CREDENTIALS.message,
+        ERRORS.INVALID_CREDENTIALS.code,
+        ERRORS.INVALID_CREDENTIALS.httpCode,
+      );
     }
 
     // Проверяем пароль
     const isPasswordValid = await bcrypt.compare(password, user.password!);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Неверный email или пароль');
+      throw new HttpExceptionWithErrorCode(
+        ERRORS.INVALID_CREDENTIALS.message,
+        ERRORS.INVALID_CREDENTIALS.code,
+        ERRORS.INVALID_CREDENTIALS.httpCode,
+      );
     }
 
     // Генерируем токены
@@ -108,12 +116,14 @@ export class AuthService {
       });
 
       // Находим пользователя
-      const user = await this.prisma.user.findUnique({
-        where: { id: payload.sub },
-      });
+      const user = await this.userRepository.findById(payload.sub);
 
       if (!user) {
-        throw new UnauthorizedException('Пользователь не найден');
+        throw new HttpExceptionWithErrorCode(
+          ERRORS.USER_NOT_FOUND.message,
+          ERRORS.USER_NOT_FOUND.code,
+          ERRORS.USER_NOT_FOUND.httpCode,
+        );
       }
 
       // Генерируем новые токены
@@ -129,7 +139,11 @@ export class AuthService {
         },
       };
     } catch (error) {
-      throw new UnauthorizedException('Невалидный refresh токен');
+      throw new HttpExceptionWithErrorCode(
+        ERRORS.INVALID_REFRESH_TOKEN.message,
+        ERRORS.INVALID_REFRESH_TOKEN.code,
+        ERRORS.INVALID_REFRESH_TOKEN.httpCode,
+      );
     }
   }
 
@@ -170,22 +184,20 @@ export class AuthService {
    * Валидация пользователя по ID (для JWT стратегии)
    */
   async validateUser(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        balance: true,
-      },
-    });
+    const user = await this.userRepository.findById(userId);
 
     if (!user) {
-      throw new UnauthorizedException('Пользователь не найден');
+      throw new HttpExceptionWithErrorCode(
+        ERRORS.USER_NOT_FOUND.message,
+        ERRORS.USER_NOT_FOUND.code,
+        ERRORS.USER_NOT_FOUND.httpCode,
+      );
     }
 
     return {
-      ...user,
+      id: user.id,
+      email: user.email,
+      role: user.role,
       balance: Number(user.balance),
     };
   }

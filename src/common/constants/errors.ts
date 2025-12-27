@@ -23,6 +23,11 @@ export const ERRORS = {
     message: 'Недействительный токен',
     httpCode: 401,
   },
+  INVALID_REFRESH_TOKEN: {
+    code: 'INVALID_REFRESH_TOKEN',
+    message: 'Невалидный refresh токен',
+    httpCode: 401,
+  },
 
   // Ошибки доступа
   FORBIDDEN: {
