@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -43,25 +44,25 @@ enum PaymentProvider {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String?  @unique
-  password  String?
-  role      Role     @default(USER)
-  balance   Decimal  @default(0) @db.Decimal(10, 2)
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String?  @unique @map("email")
+  password  String?  @map("password")
+  role      Role     @default(USER) @map("role")
+  balance   Decimal  @default(0) @db.Decimal(10, 2) @map("balance")
 
-  isEmailVerified Boolean @default(false)
-  emailVerificationToken String?
+  isEmailVerified        Boolean @default(false) @map("is_email_verified")
+  emailVerificationToken String? @map("email_verification_token")
 
   // Telegram авторизация
-  telegramId       String?  @unique
-  telegramUsername String?
-  telegramFirstName String?
-  telegramLastName  String?
+  telegramId        String? @unique @map("telegram_id")
+  telegramUsername  String? @map("telegram_username")
+  telegramFirstName String? @map("telegram_first_name")
+  telegramLastName  String? @map("telegram_last_name")
 
-  refreshToken String?
+  refreshToken String? @map("refresh_token")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   subscriptions Subscription[]
   payments      Payment[]
@@ -70,45 +71,45 @@ model User {
 }
 
 model VPNPlan {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @map("name")
+  description String? @map("description")
 
   // Лимиты по умолчанию
-  defaultTrafficLimitGB        Int // 0 = безлимит
-  defaultBypassTrafficLimitGB  Int // Лимит обхода моб. заглушек
-  defaultDeviceLimit           Int
+  defaultTrafficLimitGB       Int @map("default_traffic_limit_gb") // 0 = безлимит
+  defaultBypassTrafficLimitGB Int @map("default_bypass_traffic_limit_gb") // Лимит обхода моб. заглушек
+  defaultDeviceLimit          Int @map("default_device_limit")
 
   // Опции функционала
-  bypassTrafficEnabled Boolean  @default(true) // Включен ли bypass трафик для этого тарифа
+  bypassTrafficEnabled Boolean @default(true) @map("bypass_traffic_enabled") // Включен ли bypass трафик для этого тарифа
 
-  isActive  Boolean  @default(true)
+  isActive Boolean @default(true) @map("is_active")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   // Связи с периодами и дополнениями
-  periods         PlanPeriod[]
-  extraTraffic    PlanExtraTraffic[]
+  periods            PlanPeriod[]
+  extraTraffic       PlanExtraTraffic[]
   extraBypassTraffic PlanExtraBypassTraffic[]
-  extraDevices    PlanExtraDevice[]
-  subscriptions   Subscription[]
+  extraDevices       PlanExtraDevice[]
+  subscriptions      Subscription[]
 
   @@map("vpn_plans")
 }
 
 // Периоды подписки для тарифа (1 месяц, 3 месяца и т.д.)
 model PlanPeriod {
-  id       String  @id @default(uuid())
-  planId   String
-  plan     VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  id     String  @id @default(uuid()) @db.Uuid
+  planId String  @map("plan_id") @db.Uuid
+  plan   VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
-  durationDays Int     // Длительность в днях (30, 90, 180, 365 и т.д.)
-  price        Decimal @db.Decimal(10, 2)
-  isActive     Boolean @default(true)
+  durationDays Int     @map("duration_days") // Длительность в днях (30, 90, 180, 365 и т.д.)
+  price        Decimal @db.Decimal(10, 2) @map("price")
+  isActive     Boolean @default(true) @map("is_active")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   @@unique([planId, durationDays])
   @@map("plan_periods")
@@ -116,16 +117,16 @@ model PlanPeriod {
 
 // Дополнительный трафик (2000 GB, 4000 GB и т.д.)
 model PlanExtraTraffic {
-  id       String  @id @default(uuid())
-  planId   String
-  plan     VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  id     String  @id @default(uuid()) @db.Uuid
+  planId String  @map("plan_id") @db.Uuid
+  plan   VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
-  trafficGB Int     // Количество GB
-  price     Decimal @db.Decimal(10, 2)
-  isActive  Boolean @default(true)
+  trafficGB Int     @map("traffic_gb") // Количество GB
+  price     Decimal @db.Decimal(10, 2) @map("price")
+  isActive  Boolean @default(true) @map("is_active")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   @@unique([planId, trafficGB])
   @@map("plan_extra_traffic")
@@ -133,16 +134,16 @@ model PlanExtraTraffic {
 
 // Дополнительный трафик обхода заглушек
 model PlanExtraBypassTraffic {
-  id       String  @id @default(uuid())
-  planId   String
-  plan     VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  id     String  @id @default(uuid()) @db.Uuid
+  planId String  @map("plan_id") @db.Uuid
+  plan   VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
-  bypassTrafficGB Int     // Количество GB для обхода заглушек
-  price           Decimal @db.Decimal(10, 2)
-  isActive        Boolean @default(true)
+  bypassTrafficGB Int     @map("bypass_traffic_gb") // Количество GB для обхода заглушек
+  price           Decimal @db.Decimal(10, 2) @map("price")
+  isActive        Boolean @default(true) @map("is_active")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   @@unique([planId, bypassTrafficGB])
   @@map("plan_extra_bypass_traffic")
@@ -150,51 +151,51 @@ model PlanExtraBypassTraffic {
 
 // Дополнительные устройства (4 устройства, 6 устройств и т.д.)
 model PlanExtraDevice {
-  id       String  @id @default(uuid())
-  planId   String
-  plan     VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  id     String  @id @default(uuid()) @db.Uuid
+  planId String  @map("plan_id") @db.Uuid
+  plan   VPNPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
-  deviceCount Int     // Количество устройств
-  price       Decimal @db.Decimal(10, 2)
-  isActive    Boolean @default(true)
+  deviceCount Int     @map("device_count") // Количество устройств
+  price       Decimal @db.Decimal(10, 2) @map("price")
+  isActive    Boolean @default(true) @map("is_active")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   @@unique([planId, deviceCount])
   @@map("plan_extra_devices")
 }
 
 model Subscription {
-  id     String @id @default(uuid())
-  userId String
-  planId String
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  planId String @map("plan_id") @db.Uuid
 
-  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan VPNPlan @relation(fields: [planId], references: [id])
 
   // Remnawave integration
-  remnawaveKeyId   String? // VPN key ID in Remnawave
-  remnawaveUsername String? // Username in Remnawave
+  remnawaveKeyId    String? @map("remnawave_key_id") // VPN key ID in Remnawave
+  remnawaveUsername String? @map("remnawave_username") // Username in Remnawave
 
-  status SubscriptionStatus @default(ACTIVE)
+  status SubscriptionStatus @default(ACTIVE) @map("status")
 
   // Лимиты (включая купленные дополнения)
-  trafficLimitGB       Int // Общий лимит трафика
-  bypassTrafficLimitGB Int // Лимит обхода заглушек
-  deviceLimit          Int // Количество устройств
+  trafficLimitGB       Int @map("traffic_limit_gb") // Общий лимит трафика
+  bypassTrafficLimitGB Int @map("bypass_traffic_limit_gb") // Лимит обхода заглушек
+  deviceLimit          Int @map("device_limit") // Количество устройств
 
   // Период подписки
-  durationDays Int      // Длительность в днях
-  startDate    DateTime
-  expiryDate   DateTime
+  durationDays Int      @map("duration_days") // Длительность в днях
+  startDate    DateTime @map("start_date")
+  expiryDate   DateTime @map("expiry_date")
 
   // Auto-renewal
-  autoRenewal Boolean @default(false)
-  autoRenewalPaymentMethodId String? // YooKassa payment method ID for recurring payments
+  autoRenewal                Boolean @default(false) @map("auto_renewal")
+  autoRenewalPaymentMethodId String? @map("auto_renewal_payment_method_id") // YooKassa payment method ID for recurring payments
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   @@index([userId])
   @@index([status])
@@ -203,23 +204,23 @@ model Subscription {
 }
 
 model Payment {
-  id     String @id @default(uuid())
-  userId String
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type   PaymentType
-  amount Decimal @db.Decimal(10, 2)
-  status PaymentStatus @default(PENDING)
+  type   PaymentType   @map("type")
+  amount Decimal       @db.Decimal(10, 2) @map("amount")
+  status PaymentStatus @default(PENDING) @map("status")
 
-  provider          PaymentProvider
-  providerPaymentId String? // External payment ID (e.g., YooKassa payment ID)
+  provider          PaymentProvider @map("provider")
+  providerPaymentId String?         @map("provider_payment_id") // External payment ID (e.g., YooKassa payment ID)
 
   // Metadata for storing additional info (subscription ID, etc.)
-  metadata Json?
+  metadata Json? @map("metadata")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(dbgenerated("now()")) @map("created_at")
+  updatedAt DateTime @default(dbgenerated("now()")) @updatedAt @map("updated_at")
 
   @@index([userId])
   @@index([status])
