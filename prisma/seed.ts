@@ -47,12 +47,10 @@ async function seedSuperAdmin() {
 async function seedDefaultPlan() {
   console.log('\n📦 Проверка дефолтного тарифа...');
 
-  const existingPlan = await prisma.vPNPlan.findFirst({
-    where: { name: 'Стандарт' },
-  });
+  const existingPlan = await prisma.vPNPlan.findFirst();
 
   if (existingPlan) {
-    console.log('✅ Дефолтный тариф уже существует');
+    console.log('✅ Тариф уже существует в системе, пропускаем создание');
     return;
   }
 
