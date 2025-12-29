@@ -99,7 +99,8 @@ export async function adminPlansHandler(ctx: BotContext) {
       ),
     ]);
 
-    buttons.push([Markup.button.callback(t.admin.plans.createNew, 'admin_plan_create')]);
+    // TODO: Добавить функционал создания тарифа через бота
+    // buttons.push([Markup.button.callback(t.admin.plans.createNew, 'admin_plan_create')]);
     buttons.push([Markup.button.callback(t.common.back, 'admin_panel')]);
 
     await ctx.editMessageText(t.admin.plans.title, {
@@ -188,12 +189,12 @@ export async function adminTogglePlanHandler(ctx: BotContext, planId: string) {
 }
 
 /**
- * Редактирование тарифа (заглушка)
+ * Редактирование тарифа - перенаправление в отдельный модуль
  */
 export async function adminEditPlanHandler(ctx: BotContext, planId: string) {
-  await ctx.answerCbQuery('⚠️ Редактирование тарифов пока не реализовано', {
-    show_alert: true,
-  });
+  // Импортируем и вызываем обработчик из edit-plan.handler
+  const { editPlanMenuHandler } = await import('./edit-plan.handler');
+  await editPlanMenuHandler(ctx, planId);
 }
 
 /**

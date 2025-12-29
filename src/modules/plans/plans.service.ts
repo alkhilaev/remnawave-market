@@ -72,7 +72,10 @@ export class PlansService {
     const plans = await this.prisma.vPNPlan.findMany({
       where: showInactive ? {} : { isActive: true },
       include: {
-        periods: { where: showInactive ? {} : { isActive: true } },
+        periods: {
+          where: showInactive ? {} : { isActive: true },
+          orderBy: { durationDays: 'asc' },
+        },
         extraTraffic: { where: showInactive ? {} : { isActive: true } },
         extraBypassTraffic: { where: showInactive ? {} : { isActive: true } },
         extraDevices: { where: showInactive ? {} : { isActive: true } },
@@ -102,7 +105,10 @@ export class PlansService {
     const plan = await this.prisma.vPNPlan.findUnique({
       where: { id },
       include: {
-        periods: { where: showInactive ? {} : { isActive: true } },
+        periods: {
+          where: showInactive ? {} : { isActive: true },
+          orderBy: { durationDays: 'asc' },
+        },
         extraTraffic: { where: showInactive ? {} : { isActive: true } },
         extraBypassTraffic: { where: showInactive ? {} : { isActive: true } },
         extraDevices: { where: showInactive ? {} : { isActive: true } },
@@ -231,13 +237,65 @@ export class PlansService {
       );
     }
 
-    return this.prisma.planPeriod.create({
+    const created = await this.prisma.planPeriod.create({
       data: {
         ...periodData,
         planId,
         isActive: periodData.isActive ?? true,
       },
     });
+
+    // Инвалидируем кэш
+    await this.cacheManager.del(`plan:${planId}:active-only`);
+    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+
+    return created;
+  }
+
+  /**
+   * Обновить период
+   */
+  async updatePeriod(
+    planId: string,
+    periodId: string,
+    periodData: { durationDays?: number; price?: number },
+  ) {
+    const period = await this.prisma.planPeriod.findFirst({
+      where: { id: periodId, planId },
+    });
+
+    if (!period) {
+      throw new NotFoundException('Период не найден');
+    }
+
+    // Если меняется длительность, проверяем на дублирование
+    if (periodData.durationDays && periodData.durationDays !== period.durationDays) {
+      const existing = await this.prisma.planPeriod.findUnique({
+        where: {
+          planId_durationDays: {
+            planId,
+            durationDays: periodData.durationDays,
+          },
+        },
+      });
+
+      if (existing) {
+        throw new ConflictException(
+          `Период ${periodData.durationDays} дней уже существует для этого тарифа`,
+        );
+      }
+    }
+
+    const updated = await this.prisma.planPeriod.update({
+      where: { id: periodId },
+      data: periodData,
+    });
+
+    // Инвалидируем кэш
+    await this.cacheManager.del(`plan:${planId}:active-only`);
+    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+
+    return updated;
   }
 
   /**
@@ -252,10 +310,16 @@ export class PlansService {
       throw new NotFoundException('Период не найден');
     }
 
-    return this.prisma.planPeriod.update({
+    const updated = await this.prisma.planPeriod.update({
       where: { id: periodId },
       data: { isActive },
     });
+
+    // Инвалидируем кэш
+    await this.cacheManager.del(`plan:${planId}:active-only`);
+    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+
+    return updated;
   }
 
   /**
@@ -271,6 +335,11 @@ export class PlansService {
     }
 
     await this.prisma.planPeriod.delete({ where: { id: periodId } });
+
+    // Инвалидируем кэш
+    await this.cacheManager.del(`plan:${planId}:active-only`);
+    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+
     return { message: 'Период удалён' };
   }
 

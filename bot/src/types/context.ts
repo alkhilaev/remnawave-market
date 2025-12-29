@@ -10,5 +10,16 @@ export interface BotContext extends Context {
       bypassTrafficId?: string;
       devicesId?: string;
     };
+    // Для редактирования тарифов и периодов
+    editMode?:
+      | 'name'
+      | 'description'
+      | 'traffic'
+      | 'bypass'
+      | 'devices'
+      | 'period_duration'
+      | 'period_price'
+      | 'add_period';
+    editPlanId?: string;
   };
 }

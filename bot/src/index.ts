@@ -86,6 +86,19 @@ bot.command('start', startHandler);
 bot.command('help', helpHandler);
 bot.command('plans', createPlansHandler(apiService));
 
+// Обработчик текстовых сообщений для редактирования тарифов
+bot.on('text', async (ctx, next) => {
+  // Проверяем есть ли режим редактирования
+  if (ctx.session && ctx.session.editMode) {
+    const { handleEditTextInput } = await import('./handlers/edit-plan.handler');
+    await handleEditTextInput(ctx);
+    return;
+  }
+
+  // Если нет режима редактирования, передаём дальше
+  return next();
+});
+
 // ============================================
 // CALLBACK QUERIES (кнопки)
 // ============================================
@@ -157,8 +170,8 @@ bot.action(/^admin_plan_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
 
   const planId = ctx.callbackQuery.data.replace('admin_plan_', '');
 
-  // Проверяем, не является ли это действием toggle
-  if (planId.startsWith('toggle_')) {
+  // Проверяем, не является ли это действием toggle или create
+  if (planId.startsWith('toggle_') || planId === 'create' || planId === 'edit_') {
     return;
   }
 
@@ -180,6 +193,106 @@ bot.action(/^admin_plan_edit_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
 
   const planId = ctx.callbackQuery.data.replace('admin_plan_edit_', '');
   await adminEditPlanHandler(ctx, planId);
+});
+
+// Обработчики для редактирования полей тарифа
+bot.action(/^edit_name_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const planId = ctx.callbackQuery.data.replace('edit_name_', '');
+  const { editPlanNamePrompt } = await import('./handlers/edit-plan.handler');
+  await editPlanNamePrompt(ctx, planId);
+});
+
+bot.action(/^edit_desc_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const planId = ctx.callbackQuery.data.replace('edit_desc_', '');
+  const { editPlanDescPrompt } = await import('./handlers/edit-plan.handler');
+  await editPlanDescPrompt(ctx, planId);
+});
+
+bot.action(/^edit_traffic_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const planId = ctx.callbackQuery.data.replace('edit_traffic_', '');
+  const { editPlanTrafficPrompt } = await import('./handlers/edit-plan.handler');
+  await editPlanTrafficPrompt(ctx, planId);
+});
+
+bot.action(/^edit_bypass_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const planId = ctx.callbackQuery.data.replace('edit_bypass_', '');
+  const { editPlanBypassPrompt } = await import('./handlers/edit-plan.handler');
+  await editPlanBypassPrompt(ctx, planId);
+});
+
+bot.action(/^edit_devices_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const planId = ctx.callbackQuery.data.replace('edit_devices_', '');
+  const { editPlanDevicesPrompt } = await import('./handlers/edit-plan.handler');
+  await editPlanDevicesPrompt(ctx, planId);
+});
+
+bot.action(/^edit_prices_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const planId = ctx.callbackQuery.data.replace('edit_prices_', '');
+  const { editPlanPricesHandler } = await import('./handlers/edit-plan.handler');
+  await editPlanPricesHandler(ctx, planId);
+});
+
+// Обработчики для периодов
+bot.action(/^per_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const periodId = ctx.callbackQuery.data.replace('per_', '');
+  const { editPeriodMenuHandler } = await import('./handlers/edit-plan.handler');
+  await editPeriodMenuHandler(ctx, periodId);
+});
+
+bot.action('add_per', requireAdmin, async (ctx) => {
+  const { addPeriodPrompt } = await import('./handlers/edit-plan.handler');
+  await addPeriodPrompt(ctx);
+});
+
+bot.action(/^per_edit_dur_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const periodId = ctx.callbackQuery.data.replace('per_edit_dur_', '');
+  // Сохраняем periodId в сессию
+  if (ctx.session) {
+    ctx.session.selectedPeriodId = periodId;
+  }
+  const { editPeriodDurationPrompt } = await import('./handlers/edit-plan.handler');
+  await editPeriodDurationPrompt(ctx);
+});
+
+bot.action(/^per_edit_price_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const periodId = ctx.callbackQuery.data.replace('per_edit_price_', '');
+  // Сохраняем periodId в сессию
+  if (ctx.session) {
+    ctx.session.selectedPeriodId = periodId;
+  }
+  const { editPeriodPricePrompt } = await import('./handlers/edit-plan.handler');
+  await editPeriodPricePrompt(ctx);
+});
+
+bot.action(/^per_toggle_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const periodId = ctx.callbackQuery.data.replace('per_toggle_', '');
+  // Сохраняем periodId в сессию
+  if (ctx.session) {
+    ctx.session.selectedPeriodId = periodId;
+  }
+  const { togglePeriodHandler } = await import('./handlers/edit-plan.handler');
+  await togglePeriodHandler(ctx);
+});
+
+bot.action(/^per_delete_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
+  if (!ctx.callbackQuery || !('data' in ctx.callbackQuery)) return;
+  const periodId = ctx.callbackQuery.data.replace('per_delete_', '');
+  // Сохраняем periodId в сессию
+  if (ctx.session) {
+    ctx.session.selectedPeriodId = periodId;
+  }
+  const { deletePeriodHandler } = await import('./handlers/edit-plan.handler');
+  await deletePeriodHandler(ctx);
 });
 
 // Статистика

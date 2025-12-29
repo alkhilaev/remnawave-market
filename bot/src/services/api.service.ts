@@ -59,8 +59,15 @@ export class ApiService {
   /**
    * Получить конкретный тариф по ID (алиас для админ панели)
    */
-  async getPlanById(id: string): Promise<VPNPlan> {
-    return this.getPlan(id);
+  async getPlanById(id: string, includeInactive: boolean = false): Promise<VPNPlan> {
+    try {
+      const params = includeInactive ? { includeInactive: 'true' } : {};
+      const response = await this.client.get<VPNPlan>(`/plans/${id}`, { params });
+      return response.data;
+    } catch (error) {
+      console.error(`Ошибка при получении тарифа ${id}:`, error);
+      throw new Error('Не удалось получить тариф');
+    }
   }
 
   /**
@@ -157,6 +164,133 @@ export class ApiService {
     } catch (error) {
       console.error('Ошибка при Telegram авторизации:', error);
       throw new Error('Не удалось авторизовать пользователя');
+    }
+  }
+
+  /**
+   * Обновить тариф
+   */
+  async updatePlan(id: string, data: any, telegramId?: string): Promise<VPNPlan> {
+    try {
+      const headers: any = {};
+      if (telegramId) {
+        const token = this.getToken(telegramId);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+      }
+
+      const response = await this.client.put<VPNPlan>(`/plans/${id}`, data, { headers });
+      return response.data;
+    } catch (error: any) {
+      console.error(`Ошибка при обновлении тарифа ${id}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Добавить период к тарифу
+   */
+  async addPeriod(
+    planId: string,
+    periodData: { durationDays: number; price: number; isActive?: boolean },
+    telegramId?: string,
+  ): Promise<any> {
+    try {
+      const headers: any = {};
+      if (telegramId) {
+        const token = this.getToken(telegramId);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+      }
+
+      const response = await this.client.post(`/plans/${planId}/periods`, periodData, { headers });
+      return response.data;
+    } catch (error: any) {
+      console.error('Ошибка при добавлении периода:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Обновить период
+   */
+  async updatePeriod(
+    planId: string,
+    periodId: string,
+    periodData: { durationDays?: number; price?: number },
+    telegramId?: string,
+  ): Promise<any> {
+    try {
+      const headers: any = {};
+      if (telegramId) {
+        const token = this.getToken(telegramId);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+      }
+
+      const response = await this.client.patch(`/plans/${planId}/periods/${periodId}`, periodData, {
+        headers,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Ошибка при обновлении периода:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Переключить активность периода
+   */
+  async togglePeriod(
+    planId: string,
+    periodId: string,
+    isActive: boolean,
+    telegramId?: string,
+  ): Promise<any> {
+    try {
+      const headers: any = {};
+      if (telegramId) {
+        const token = this.getToken(telegramId);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+      }
+
+      const response = await this.client.patch(
+        `/plans/${planId}/periods/${periodId}/toggle`,
+        { isActive },
+        { headers },
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Ошибка при переключении периода:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Удалить период
+   */
+  async deletePeriod(planId: string, periodId: string, telegramId?: string): Promise<any> {
+    try {
+      const headers: any = {};
+      if (telegramId) {
+        const token = this.getToken(telegramId);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+      }
+
+      const response = await this.client.delete(`/plans/${planId}/periods/${periodId}`, {
+        headers,
+      });
+      return response.data;
+    } catch (error: any) {
+      console.error('Ошибка при удалении периода:', error);
+      throw error;
     }
   }
 }

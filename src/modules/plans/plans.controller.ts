@@ -59,10 +59,15 @@ export class PlansController {
   @Public()
   @ApiOperation({ summary: 'Получить тариф по ID' })
   @ApiParam({ name: 'id', description: 'ID тарифа' })
+  @ApiQuery({
+    name: 'includeInactive',
+    required: false,
+    description: 'Включить неактивные периоды (для админов)',
+  })
   @ApiResponse({ status: 200, description: 'Данные тарифа' })
   @ApiResponse({ status: 404, description: 'Тариф не найден' })
-  async findOne(@Param('id') id: string) {
-    return this.plansService.findOne(id);
+  async findOne(@Param('id') id: string, @Query('includeInactive') includeInactive?: string) {
+    return this.plansService.findOne(id, includeInactive === 'true');
   }
 
   @Put(':id')
@@ -111,6 +116,19 @@ export class PlansController {
     return this.plansService.addPeriod(id, periodData);
   }
 
+  @Patch(':planId/periods/:periodId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Обновить период (только админы)' })
+  async updatePeriod(
+    @Param('planId') planId: string,
+    @Param('periodId') periodId: string,
+    @Body() periodData: { durationDays?: number; price?: number },
+  ) {
+    return this.plansService.updatePeriod(planId, periodId, periodData);
+  }
+
   @Patch(':planId/periods/:periodId/toggle')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
@@ -129,10 +147,7 @@ export class PlansController {
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Удалить период (только админы)' })
-  async removePeriod(
-    @Param('planId') planId: string,
-    @Param('periodId') periodId: string,
-  ) {
+  async removePeriod(@Param('planId') planId: string, @Param('periodId') periodId: string) {
     return this.plansService.removePeriod(planId, periodId);
   }
 }
