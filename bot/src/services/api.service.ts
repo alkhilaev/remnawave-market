@@ -168,6 +168,27 @@ export class ApiService {
   }
 
   /**
+   * Создать новый тариф
+   */
+  async createPlan(data: any, telegramId?: string): Promise<VPNPlan> {
+    try {
+      const headers: any = {};
+      if (telegramId) {
+        const token = this.getToken(telegramId);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+      }
+
+      const response = await this.client.post<VPNPlan>('/plans', data, { headers });
+      return response.data;
+    } catch (error: any) {
+      console.error('Ошибка при создании тарифа:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Обновить тариф
    */
   async updatePlan(id: string, data: any, telegramId?: string): Promise<VPNPlan> {

@@ -211,15 +211,15 @@ export async function handleEditTextInput(ctx: BotContext) {
         return;
 
       case 'add_period':
-        const parts = text.trim().split(/\s+/);
-        if (parts.length !== 2) {
-          await ctx.reply('❌ Неверный формат. Используйте: `<дни> <цена>`, например: `30 199`', {
+        if (!text.includes(':')) {
+          await ctx.reply('❌ Неверный формат. Используйте: `дни:цена`, например: `30:199`', {
             parse_mode: 'Markdown',
           });
           return;
         }
-        const newDuration = parseInt(parts[0]);
-        const newPrice = parseFloat(parts[1]);
+        const [daysStr, priceStr] = text.trim().split(':', 2);
+        const newDuration = parseInt(daysStr);
+        const newPrice = parseFloat(priceStr);
         if (isNaN(newDuration) || newDuration < 1 || isNaN(newPrice) || newPrice < 0) {
           await ctx.reply(
             '❌ Некорректные значения. Дни должны быть больше 0, цена не может быть отрицательной',
@@ -409,14 +409,23 @@ export async function editPlanPricesHandler(ctx: BotContext, planId: string) {
     // Кнопка назад
     buttons.push([Markup.button.callback('◀️ Назад', `admin_plan_edit_${planId}`)]);
 
-    await ctx.editMessageText(message, {
-      parse_mode: 'Markdown',
+    const keyboard = {
+      parse_mode: 'Markdown' as const,
       ...Markup.inlineKeyboard(buttons),
-    });
-    await ctx.answerCbQuery();
+    };
+
+    // Если это callback query - редактируем сообщение, если текст - отправляем новое
+    if (ctx.callbackQuery) {
+      await ctx.editMessageText(message, keyboard);
+      await ctx.answerCbQuery();
+    } else {
+      await ctx.reply(message, keyboard);
+    }
   } catch (error) {
     console.error('Ошибка при отображении цен:', error);
-    await ctx.answerCbQuery('❌ Ошибка при загрузке данных', { show_alert: true });
+    if (ctx.callbackQuery) {
+      await ctx.answerCbQuery('❌ Ошибка при загрузке данных', { show_alert: true });
+    }
   }
 }
 
@@ -632,9 +641,8 @@ export async function addPeriodPrompt(ctx: BotContext) {
 
     await ctx.editMessageText(
       '➕ *Добавление нового периода*\n\n' +
-        'Отправьте данные в формате:\n' +
-        '`<длительность в днях> <цена>`\n\n' +
-        'Например: `30 199` или `90 499`',
+        'Отправьте данные в формате: `дни:цена`\n\n' +
+        'Например: `30:199` или `90:499`',
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([[Markup.button.callback('❌ Отмена', `edit_prices_${planId}`)]]),

@@ -69,9 +69,11 @@ export async function adminPanelHandler(ctx: BotContext) {
   await ctx.editMessageText(t.admin.panel.title, {
     parse_mode: 'Markdown',
     ...Markup.inlineKeyboard([
+      [
+        Markup.button.callback(t.admin.panel.buttons.stats, 'admin_stats'),
+        Markup.button.callback(t.admin.panel.buttons.users, 'admin_users'),
+      ],
       [Markup.button.callback(t.admin.panel.buttons.plans, 'admin_plans')],
-      [Markup.button.callback(t.admin.panel.buttons.stats, 'admin_stats')],
-      [Markup.button.callback(t.admin.panel.buttons.users, 'admin_users')],
       [Markup.button.callback(t.admin.panel.buttons.back, 'back_to_start')],
     ]),
   });
@@ -99,8 +101,7 @@ export async function adminPlansHandler(ctx: BotContext) {
       ),
     ]);
 
-    // TODO: Добавить функционал создания тарифа через бота
-    // buttons.push([Markup.button.callback(t.admin.plans.createNew, 'admin_plan_create')]);
+    buttons.push([Markup.button.callback(t.admin.plans.createNew, 'admin_plan_create')]);
     buttons.push([Markup.button.callback(t.common.back, 'admin_panel')]);
 
     await ctx.editMessageText(t.admin.plans.title, {
@@ -129,12 +130,12 @@ export async function adminPlanDetailHandler(ctx: BotContext, planId: string) {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
         [
+          Markup.button.callback(t.admin.plans.buttons.edit, `admin_plan_edit_${planId}`),
           Markup.button.callback(
             t.admin.plans.buttons.toggle(plan.isActive),
             `admin_plan_toggle_${planId}`,
           ),
         ],
-        [Markup.button.callback(t.admin.plans.buttons.edit, `admin_plan_edit_${planId}`)],
         [Markup.button.callback(t.admin.plans.buttons.back, 'admin_plans')],
       ]),
     });

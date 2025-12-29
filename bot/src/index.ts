@@ -86,10 +86,18 @@ bot.command('start', startHandler);
 bot.command('help', helpHandler);
 bot.command('plans', createPlansHandler(apiService));
 
-// Обработчик текстовых сообщений для редактирования тарифов
+// Обработчик текстовых сообщений для редактирования и создания тарифов
 bot.on('text', async (ctx, next) => {
-  // Проверяем есть ли режим редактирования
+  // Проверяем есть ли режим редактирования или создания
   if (ctx.session && ctx.session.editMode) {
+    // Если режим создания тарифа
+    if (ctx.session.editMode.startsWith('create_plan_')) {
+      const { handleCreatePlanInput } = await import('./handlers/create-plan.handler');
+      await handleCreatePlanInput(ctx);
+      return;
+    }
+
+    // Если режим редактирования
     const { handleEditTextInput } = await import('./handlers/edit-plan.handler');
     await handleEditTextInput(ctx);
     return;
@@ -162,6 +170,12 @@ bot.action('admin_panel', requireAdmin, async (ctx) => {
 bot.action('admin_plans', requireAdmin, async (ctx) => {
   await adminPlansHandler(ctx);
   await ctx.answerCbQuery();
+});
+
+// Создание нового тарифа (должно быть ПЕРЕД общим pattern)
+bot.action('admin_plan_create', requireAdmin, async (ctx) => {
+  const { startCreatePlan } = await import('./handlers/create-plan.handler');
+  await startCreatePlan(ctx);
 });
 
 // Просмотр конкретного тарифа (для редактирования)
@@ -293,6 +307,12 @@ bot.action(/^per_delete_[a-zA-Z0-9-]+$/, requireAdmin, async (ctx) => {
   }
   const { deletePeriodHandler } = await import('./handlers/edit-plan.handler');
   await deletePeriodHandler(ctx);
+});
+
+// Пропуск описания при создании тарифа
+bot.action('create_skip_description', requireAdmin, async (ctx) => {
+  const { skipDescription } = await import('./handlers/create-plan.handler');
+  await skipDescription(ctx);
 });
 
 // Статистика

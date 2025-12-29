@@ -56,6 +56,14 @@ export class PlansService {
   }
 
   /**
+   * Инвалидация кэша конкретного тарифа
+   */
+  private async invalidatePlanCache(planId: string) {
+    await this.cacheManager.del(`plan:${planId}:active-only`);
+    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+  }
+
+  /**
    * Получить все тарифы (админ видит все, пользователи только активные)
    * Использует Redis кэш для активных тарифов
    */
@@ -148,8 +156,7 @@ export class PlansService {
 
     // Инвалидируем кэш
     await this.invalidatePlansCache();
-    await this.cacheManager.del(`plan:${id}:active-only`);
-    await this.cacheManager.del(`plan:${id}:with-inactive`);
+    await this.invalidatePlanCache(id);
 
     return updated;
   }
@@ -206,8 +213,7 @@ export class PlansService {
 
     // Инвалидируем кэш
     await this.invalidatePlansCache();
-    await this.cacheManager.del(`plan:${id}:active-only`);
-    await this.cacheManager.del(`plan:${id}:with-inactive`);
+    await this.invalidatePlanCache(id);
 
     return updated;
   }
@@ -246,8 +252,7 @@ export class PlansService {
     });
 
     // Инвалидируем кэш
-    await this.cacheManager.del(`plan:${planId}:active-only`);
-    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+    await this.invalidatePlanCache(planId);
 
     return created;
   }
@@ -292,8 +297,7 @@ export class PlansService {
     });
 
     // Инвалидируем кэш
-    await this.cacheManager.del(`plan:${planId}:active-only`);
-    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+    await this.invalidatePlanCache(planId);
 
     return updated;
   }
@@ -316,8 +320,7 @@ export class PlansService {
     });
 
     // Инвалидируем кэш
-    await this.cacheManager.del(`plan:${planId}:active-only`);
-    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+    await this.invalidatePlanCache(planId);
 
     return updated;
   }
@@ -337,8 +340,7 @@ export class PlansService {
     await this.prisma.planPeriod.delete({ where: { id: periodId } });
 
     // Инвалидируем кэш
-    await this.cacheManager.del(`plan:${planId}:active-only`);
-    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+    await this.invalidatePlanCache(planId);
 
     return { message: 'Период удалён' };
   }

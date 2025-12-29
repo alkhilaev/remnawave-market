@@ -19,7 +19,22 @@ export interface BotContext extends Context {
       | 'devices'
       | 'period_duration'
       | 'period_price'
-      | 'add_period';
+      | 'add_period'
+      | 'create_plan_name'
+      | 'create_plan_description'
+      | 'create_plan_traffic'
+      | 'create_plan_bypass'
+      | 'create_plan_devices'
+      | 'create_plan_period';
     editPlanId?: string;
+    // Для создания нового тарифа
+    createPlan?: {
+      name?: string;
+      description?: string;
+      defaultTrafficLimitGB?: number;
+      defaultBypassTrafficLimitGB?: number;
+      defaultDeviceLimit?: number;
+      periods?: Array<{ durationDays: number; price: number }>;
+    };
   };
 }
