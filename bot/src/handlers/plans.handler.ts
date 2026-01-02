@@ -2,6 +2,7 @@ import { Markup } from 'telegraf';
 import { BotContext } from '../types/context';
 import { ApiService } from '../services/api.service';
 import { formatPrice, formatTraffic } from '../utils/formatters';
+import { t } from '../locales';
 
 export function createPlansHandler(apiService: ApiService) {
   return async function plansHandler(ctx: BotContext) {
@@ -15,21 +16,21 @@ export function createPlansHandler(apiService: ApiService) {
         return;
       }
 
-      const buttons = plans.map(plan => [
+      const buttons = plans.map((plan) => [
         Markup.button.callback(
           `${plan.name} — от ${formatPrice(plan.periods[0]?.price || 0)}`,
-          `plan_${plan.id}`
-        )
+          `plan_${plan.id}`,
+        ),
       ]);
 
-      buttons.push([Markup.button.callback('« Назад', 'back_to_main')]);
+      buttons.push([Markup.button.callback(t.plans.buttons.backToMain, 'back_to_main')]);
 
       await ctx.editMessageText(
         '📦 **Доступные тарифы:**\n\nВыберите интересующий вас тариф для просмотра деталей:',
         {
           parse_mode: 'Markdown',
           ...Markup.inlineKeyboard(buttons),
-        }
+        },
       );
     } catch (error) {
       console.error('Ошибка при загрузке тарифов:', error);
@@ -65,8 +66,8 @@ export function createPlanDetailsHandler(apiService: ApiService) {
       if (plan.periods.length > 0) {
         message += `**Доступные периоды:**\n`;
         plan.periods
-          .filter(p => p.isActive)
-          .forEach(period => {
+          .filter((p) => p.isActive)
+          .forEach((period) => {
             const days = period.durationDays;
             let periodName = `${days} дней`;
             if (days === 30) periodName = '1 месяц';
@@ -78,8 +79,8 @@ export function createPlanDetailsHandler(apiService: ApiService) {
       }
 
       const buttons = [
-        [Markup.button.callback('✅ Выбрать этот тариф', `select_plan_${planId}`)],
-        [Markup.button.callback('« К списку тарифов', 'view_plans')],
+        [Markup.button.callback(t.plans.buttons.select, `select_plan_${planId}`)],
+        [Markup.button.callback(t.plans.buttons.backToList, 'view_plans')],
       ];
 
       await ctx.editMessageText(message, {
@@ -113,8 +114,8 @@ export function createSelectPlanHandler(apiService: ApiService) {
 
       // Показываем выбор периода
       const buttons = plan.periods
-        .filter(p => p.isActive)
-        .map(period => {
+        .filter((p) => p.isActive)
+        .map((period) => {
           const days = period.durationDays;
           let periodName = `${days} дней`;
           if (days === 30) periodName = '1 месяц';
@@ -125,20 +126,17 @@ export function createSelectPlanHandler(apiService: ApiService) {
           return [
             Markup.button.callback(
               `${periodName} — ${formatPrice(period.price)}`,
-              `select_period_${period.id}`
-            )
+              `select_period_${period.id}`,
+            ),
           ];
         });
 
-      buttons.push([Markup.button.callback('« Назад', `plan_${planId}`)]);
+      buttons.push([Markup.button.callback(t.plans.buttons.back, `plan_${planId}`)]);
 
-      await ctx.editMessageText(
-        `📅 **Выберите период подписки для тарифа "${plan.name}":**`,
-        {
-          parse_mode: 'Markdown',
-          ...Markup.inlineKeyboard(buttons),
-        }
-      );
+      await ctx.editMessageText(`📅 **Выберите период подписки для тарифа "${plan.name}":**`, {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard(buttons),
+      });
 
       await ctx.answerCbQuery();
     } catch (error) {

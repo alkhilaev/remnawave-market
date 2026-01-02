@@ -1,6 +1,7 @@
 import { Markup } from 'telegraf';
 import { BotContext } from '../types/context';
 import { apiService } from '../index';
+import { t } from '../locales';
 
 /**
  * Меню редактирования тарифа
@@ -22,18 +23,18 @@ export async function editPlanMenuHandler(ctx: BotContext, planId: string) {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
         [
-          Markup.button.callback('📝 Название', `edit_name_${planId}`),
-          Markup.button.callback('📄 Описание', `edit_desc_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.name, `edit_name_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.description, `edit_desc_${planId}`),
         ],
         [
-          Markup.button.callback('📊 Лимит трафика', `edit_traffic_${planId}`),
-          Markup.button.callback('🔄 Лимит обхода', `edit_bypass_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.traffic, `edit_traffic_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.bypass, `edit_bypass_${planId}`),
         ],
         [
-          Markup.button.callback('📱 Устройства', `edit_devices_${planId}`),
-          Markup.button.callback('💰 Цены', `edit_prices_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.devices, `edit_devices_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.prices, `edit_prices_${planId}`),
         ],
-        [Markup.button.callback('◀️ Назад', `admin_plan_${planId}`)],
+        [Markup.button.callback(t.admin.plans.edit.buttons.back, `admin_plan_${planId}`)],
       ]),
     });
   } catch (error) {
@@ -59,7 +60,7 @@ export async function editPlanNamePrompt(ctx: BotContext, planId: string) {
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('❌ Отмена', `admin_plan_edit_${planId}`)],
+          [Markup.button.callback(t.admin.plans.buttons.cancel, `admin_plan_edit_${planId}`)],
         ]),
       },
     );
@@ -85,7 +86,7 @@ export async function editPlanDescPrompt(ctx: BotContext, planId: string) {
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('❌ Отмена', `admin_plan_edit_${planId}`)],
+          [Markup.button.callback(t.admin.plans.buttons.cancel, `admin_plan_edit_${planId}`)],
         ]),
       },
     );
@@ -257,18 +258,18 @@ export async function handleEditTextInput(ctx: BotContext) {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
         [
-          Markup.button.callback('📝 Название', `edit_name_${planId}`),
-          Markup.button.callback('📄 Описание', `edit_desc_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.name, `edit_name_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.description, `edit_desc_${planId}`),
         ],
         [
-          Markup.button.callback('📊 Лимит трафика', `edit_traffic_${planId}`),
-          Markup.button.callback('🔄 Лимит обхода', `edit_bypass_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.traffic, `edit_traffic_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.bypass, `edit_bypass_${planId}`),
         ],
         [
-          Markup.button.callback('📱 Устройства', `edit_devices_${planId}`),
-          Markup.button.callback('💰 Цены', `edit_prices_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.devices, `edit_devices_${planId}`),
+          Markup.button.callback(t.admin.plans.edit.buttons.prices, `edit_prices_${planId}`),
         ],
-        [Markup.button.callback('◀️ Назад', `admin_plan_${planId}`)],
+        [Markup.button.callback(t.admin.plans.edit.buttons.back, `admin_plan_${planId}`)],
       ]),
     });
   } catch (error: any) {
@@ -299,7 +300,7 @@ export async function editPlanTrafficPrompt(ctx: BotContext, planId: string) {
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('❌ Отмена', `admin_plan_edit_${planId}`)],
+          [Markup.button.callback(t.admin.plans.buttons.cancel, `admin_plan_edit_${planId}`)],
         ]),
       },
     );
@@ -321,7 +322,7 @@ export async function editPlanBypassPrompt(ctx: BotContext, planId: string) {
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('❌ Отмена', `admin_plan_edit_${planId}`)],
+          [Markup.button.callback(t.admin.plans.buttons.cancel, `admin_plan_edit_${planId}`)],
         ]),
       },
     );
@@ -344,7 +345,7 @@ export async function editPlanDevicesPrompt(ctx: BotContext, planId: string) {
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('❌ Отмена', `admin_plan_edit_${planId}`)],
+          [Markup.button.callback(t.admin.plans.buttons.cancel, `admin_plan_edit_${planId}`)],
         ]),
       },
     );
@@ -404,10 +405,12 @@ export async function editPlanPricesHandler(ctx: BotContext, planId: string) {
     }
 
     // Кнопка добавить период
-    buttons.push([Markup.button.callback('➕ Добавить период', `add_per`)]);
+    buttons.push([Markup.button.callback(t.admin.plans.periods.buttons.add, `add_per`)]);
 
     // Кнопка назад
-    buttons.push([Markup.button.callback('◀️ Назад', `admin_plan_edit_${planId}`)]);
+    buttons.push([
+      Markup.button.callback(t.admin.plans.periods.buttons.back, `admin_plan_edit_${planId}`),
+    ]);
 
     const keyboard = {
       parse_mode: 'Markdown' as const,
@@ -466,16 +469,26 @@ export async function editPeriodMenuHandler(ctx: BotContext, periodId: string) {
       `Выберите действие:`;
 
     const keyboard = Markup.inlineKeyboard([
-      [Markup.button.callback('📅 Изменить длительность', `per_edit_dur_${periodId}`)],
-      [Markup.button.callback('💰 Изменить цену', `per_edit_price_${periodId}`)],
+      [
+        Markup.button.callback(
+          t.admin.plans.periods.buttons.editDuration,
+          `per_edit_dur_${periodId}`,
+        ),
+      ],
+      [
+        Markup.button.callback(
+          t.admin.plans.periods.buttons.editPrice,
+          `per_edit_price_${periodId}`,
+        ),
+      ],
       [
         Markup.button.callback(
           period.isActive ? '❌ Отключить' : '✅ Включить',
           `per_toggle_${periodId}`,
         ),
       ],
-      [Markup.button.callback('🗑 Удалить период', `per_delete_${periodId}`)],
-      [Markup.button.callback('◀️ Назад', `edit_prices_${planId}`)],
+      [Markup.button.callback(t.admin.plans.periods.buttons.delete, `per_delete_${periodId}`)],
+      [Markup.button.callback(t.admin.plans.periods.buttons.back, `edit_prices_${planId}`)],
     ]);
 
     // Если это callback query - редактируем сообщение, если текст - отправляем новое
@@ -590,7 +603,12 @@ export async function editPeriodDurationPrompt(ctx: BotContext) {
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('❌ Отмена', `per_${ctx.session?.selectedPeriodId}`)],
+          [
+            Markup.button.callback(
+              t.admin.plans.buttons.cancel,
+              `per_${ctx.session?.selectedPeriodId}`,
+            ),
+          ],
         ]),
       },
     );
@@ -617,7 +635,12 @@ export async function editPeriodPricePrompt(ctx: BotContext) {
       {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-          [Markup.button.callback('❌ Отмена', `per_${ctx.session?.selectedPeriodId}`)],
+          [
+            Markup.button.callback(
+              t.admin.plans.buttons.cancel,
+              `per_${ctx.session?.selectedPeriodId}`,
+            ),
+          ],
         ]),
       },
     );
@@ -645,7 +668,9 @@ export async function addPeriodPrompt(ctx: BotContext) {
         'Например: `30:199` или `90:499`',
       {
         parse_mode: 'Markdown',
-        ...Markup.inlineKeyboard([[Markup.button.callback('❌ Отмена', `edit_prices_${planId}`)]]),
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback(t.admin.plans.buttons.cancel, `edit_prices_${planId}`)],
+        ]),
       },
     );
     await ctx.answerCbQuery();

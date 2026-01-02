@@ -1,6 +1,7 @@
 import { Markup } from 'telegraf';
 import { BotContext } from '../types/context';
 import { apiService } from '../index';
+import { t } from '../locales';
 
 /**
  * Начало процесса создания тарифа - запрос названия
@@ -20,7 +21,9 @@ export async function startCreatePlan(ctx: BotContext) {
         'Отправьте название тарифа (макс. 100 символов):',
       {
         parse_mode: 'Markdown',
-        ...Markup.inlineKeyboard([[Markup.button.callback('❌ Отмена', 'admin_plans')]]),
+        ...Markup.inlineKeyboard([
+          [Markup.button.callback(t.admin.plans.buttons.cancel, 'admin_plans')],
+        ]),
       },
     );
     await ctx.answerCbQuery();
@@ -57,7 +60,7 @@ export async function handleCreatePlanInput(ctx: BotContext) {
           {
             parse_mode: 'Markdown',
             ...Markup.inlineKeyboard([
-              [Markup.button.callback('⏭ Пропустить', 'create_skip_description')],
+              [Markup.button.callback(t.admin.plans.buttons.skip, 'create_skip_description')],
             ]),
           },
         );
@@ -266,10 +269,13 @@ async function createPlanFinalize(ctx: BotContext) {
       parse_mode: 'Markdown',
       ...Markup.inlineKeyboard([
         [
-          Markup.button.callback('📝 Редактировать', `admin_plan_edit_${newPlan.id}`),
-          Markup.button.callback('❌ Деактивировать', `admin_plan_toggle_${newPlan.id}`),
+          Markup.button.callback(t.admin.plans.buttons.edit, `admin_plan_edit_${newPlan.id}`),
+          Markup.button.callback(
+            t.admin.plans.buttons.toggle(true),
+            `admin_plan_toggle_${newPlan.id}`,
+          ),
         ],
-        [Markup.button.callback('◀️ К списку тарифов', 'admin_plans')],
+        [Markup.button.callback(t.admin.plans.buttons.backToList, 'admin_plans')],
       ]),
     });
   } catch (error: any) {
