@@ -3,10 +3,8 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-  Inject,
 } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { RedisService } from '@common/redis';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePlanDto, UpdatePlanDto, TogglePlanDto } from '../../plans/dto';
 
@@ -14,7 +12,7 @@ import { CreatePlanDto, UpdatePlanDto, TogglePlanDto } from '../../plans/dto';
 export class PlansService {
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly redis: RedisService,
   ) {}
 
   /**
@@ -51,16 +49,16 @@ export class PlansService {
    * Инвалидация кэша тарифов
    */
   private async invalidatePlansCache() {
-    await this.cacheManager.del('plans:all:active-only');
-    await this.cacheManager.del('plans:all:with-inactive');
+    await this.redis.del('plans:all:active-only');
+    await this.redis.del('plans:all:with-inactive');
   }
 
   /**
    * Инвалидация кэша конкретного тарифа
    */
   private async invalidatePlanCache(planId: string) {
-    await this.cacheManager.del(`plan:${planId}:active-only`);
-    await this.cacheManager.del(`plan:${planId}:with-inactive`);
+    await this.redis.del(`plan:${planId}:active-only`);
+    await this.redis.del(`plan:${planId}:with-inactive`);
   }
 
   /**
@@ -71,7 +69,7 @@ export class PlansService {
     const cacheKey = `plans:all:${showInactive ? 'with-inactive' : 'active-only'}`;
 
     // Пытаемся получить из кэша
-    const cached = await this.cacheManager.get(cacheKey);
+    const cached = await this.redis.get(cacheKey);
     if (cached) {
       return cached;
     }
@@ -92,7 +90,7 @@ export class PlansService {
     });
 
     // Сохраняем в кэш
-    await this.cacheManager.set(cacheKey, plans, 300000); // 5 минут
+    await this.redis.set(cacheKey, plans, 300000); // 5 минут
 
     return plans;
   }
@@ -105,7 +103,7 @@ export class PlansService {
     const cacheKey = `plan:${id}:${showInactive ? 'with-inactive' : 'active-only'}`;
 
     // Пытаемся получить из кэша
-    const cached = await this.cacheManager.get(cacheKey);
+    const cached = await this.redis.get(cacheKey);
     if (cached) {
       return cached;
     }
@@ -128,7 +126,7 @@ export class PlansService {
     }
 
     // Сохраняем в кэш
-    await this.cacheManager.set(cacheKey, plan, 300000); // 5 минут
+    await this.redis.set(cacheKey, plan, 300000); // 5 минут
 
     return plan;
   }

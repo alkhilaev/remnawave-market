@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { CacheModule } from '@nestjs/cache-manager';
 import { ClsModule } from 'nestjs-cls';
 import { ClsPluginTransactional } from '@nestjs-cls/transactional';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { getCacheConfig } from '@common/config/cache.config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { RedisModule } from '@common/redis';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './modules/prisma/prisma.module';
@@ -25,8 +25,8 @@ import { HealthModule } from './integration-modules/health/health.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    // Redis Cache
-    CacheModule.registerAsync(getCacheConfig()),
+    // Redis
+    RedisModule,
     // nestjs-cls для транзакций
     ClsModule.forRoot({
       plugins: [
@@ -40,6 +40,8 @@ import { HealthModule } from './integration-modules/health/health.module';
       global: true,
       middleware: { mount: true },
     }),
+    // Cron-задачи
+    ScheduleModule.forRoot(),
     // Event Emitter для асинхронных событий
     EventEmitterModule.forRoot({
       wildcard: true,
