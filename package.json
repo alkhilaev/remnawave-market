@@ -6,6 +6,7 @@
   "license": "MIT",
   "packageManager": "pnpm@9.0.0",
   "scripts": {
+    "prebuild": "prisma generate",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -41,7 +42,8 @@
     "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^11.2.6",
     "@nestjs/terminus": "^11.1.1",
-    "@prisma/client": "^6.19.2",
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
     "@remnawave/backend-contract": "^2.4.1",
     "axios": "^1.13.6",
     "bcrypt": "^6.0.0",
@@ -85,7 +87,7 @@
     "knip": "^5.85.0",
     "lint-staged": "^16.3.1",
     "prettier": "^3.8.1",
-    "prisma": "^6.19.2",
+    "prisma": "^7.4.2",
     "source-map-support": "^0.5.21",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
@@ -108,9 +110,6 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
   },
   "lint-staged": {
     "src/**/*.ts": [

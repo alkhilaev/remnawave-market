@@ -1,5 +1,5 @@
 import { ICommand } from '@nestjs/cqrs';
-import { Role } from '@prisma/client';
+import { Role } from '@/generated/prisma/client';
 
 /**
  * Command для создания пользователя

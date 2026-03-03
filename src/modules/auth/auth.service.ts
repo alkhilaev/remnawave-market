@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { UserRepository } from '@common/repositories/user.repository';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto, LoginDto, AuthResponseDto, TelegramAuthDto } from '../../auth/dto';
-import { Role } from '@prisma/client';
+import { Role } from '@/generated/prisma/client';
 import { HttpExceptionWithErrorCode } from '@common/exceptions/http-exception-with-error-code';
 import { ERRORS } from '@common/constants/errors';
 
