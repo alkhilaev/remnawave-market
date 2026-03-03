@@ -1,7 +1,7 @@
 import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
 import { Transactional } from '@nestjs-cls/transactional';
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 import { CreateUserCommand } from '../create-user.command';
 import { UserRepository } from '@common/repositories/user.repository';
 import { UserEntity } from '@common/entities/user.entity';

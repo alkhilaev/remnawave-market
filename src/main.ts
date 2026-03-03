@@ -4,8 +4,8 @@ import { ConfigService } from '@nestjs/config';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { WinstonModule } from 'nest-winston';
 import helmet from 'helmet';
-import * as compression from 'compression';
-import * as morgan from 'morgan';
+import compression from 'compression';
+import morgan from 'morgan';
 import { AppModule } from './app.module';
 import { winstonConfig } from '@common/config/winston.config';
 

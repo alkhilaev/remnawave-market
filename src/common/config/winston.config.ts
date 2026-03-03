@@ -1,5 +1,5 @@
 import { WinstonModuleOptions } from 'nest-winston';
-import * as winston from 'winston';
+import winston from 'winston';
 
 const { combine, timestamp, printf, colorize, errors } = winston.format;
 
