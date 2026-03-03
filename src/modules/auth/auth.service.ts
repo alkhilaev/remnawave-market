@@ -133,7 +133,7 @@ export class AuthService {
           balance: Number(user.balance),
         },
       };
-    } catch (error) {
+    } catch {
       throw new HttpExceptionWithErrorCode(
         ERRORS.INVALID_REFRESH_TOKEN.message,
         ERRORS.INVALID_REFRESH_TOKEN.code,
@@ -158,12 +158,16 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: this.configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION'),
+        secret: this.configService.getOrThrow<string>('JWT_SECRET'),
+        expiresIn: this.configService.getOrThrow<string>(
+          'JWT_ACCESS_TOKEN_EXPIRATION',
+        ) as `${number}${'s' | 'm' | 'h' | 'd'}`,
       }),
       this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: this.configService.get<string>('JWT_REFRESH_TOKEN_EXPIRATION'),
+        secret: this.configService.getOrThrow<string>('JWT_SECRET'),
+        expiresIn: this.configService.getOrThrow<string>(
+          'JWT_REFRESH_TOKEN_EXPIRATION',
+        ) as `${number}${'s' | 'm' | 'h' | 'd'}`,
       }),
     ]);
 

@@ -1,7 +1,7 @@
 # ==========================================
 # Development Stage (для разработки с hot reload)
 # ==========================================
-FROM node:20-alpine AS development
+FROM node:22-alpine AS development
 
 # Устанавливаем системные зависимости (OpenSSL для Prisma)
 RUN apk add --no-cache openssl libc6-compat
@@ -34,7 +34,7 @@ CMD ["pnpm", "run", "start:dev"]
 # ==========================================
 # Build Stage (для сборки приложения)
 # ==========================================
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Устанавливаем системные зависимости (OpenSSL для Prisma)
 RUN apk add --no-cache openssl libc6-compat
@@ -63,7 +63,7 @@ RUN pnpm run build
 # ==========================================
 # Production Stage (для продакшена)
 # ==========================================
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 # Устанавливаем системные зависимости (OpenSSL для Prisma)
 RUN apk add --no-cache openssl libc6-compat

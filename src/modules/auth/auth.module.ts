@@ -13,9 +13,11 @@ import { UserRepository } from '@common/repositories/user.repository';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_ACCESS_TOKEN_EXPIRATION'),
+          expiresIn: configService.getOrThrow<string>(
+            'JWT_ACCESS_TOKEN_EXPIRATION',
+          ) as `${number}${'s' | 'm' | 'h' | 'd'}`,
         },
       }),
       inject: [ConfigService],
