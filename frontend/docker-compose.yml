@@ -1,0 +1,19 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: remnawave-market-frontend
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      NUXT_PUBLIC_API_BASE: http://remnawave-market-app:3000/api/v1
+      NODE_ENV: ${NODE_ENV:-production}
+    networks:
+      - remnawave-market_remnawave-network
+
+networks:
+  remnawave-market_remnawave-network:
+    external: true
