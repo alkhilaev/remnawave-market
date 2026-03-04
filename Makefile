@@ -15,8 +15,8 @@ up: ## Поднять все контейнеры (detached)
 	cd bot && docker compose up -d --build
 	@echo "🌐 Поднимаем frontend..."
 	cd frontend && docker compose up -d --build
-	@echo "📱 Логи backend..."
-	docker compose logs -f app
+	@echo "📡 Логи всех контейнеров..."
+	docker compose logs -f app & cd bot && docker compose logs -f & cd frontend && docker compose logs -f
 
 up-follow: ## Поднять все контейнеры с логами
 	@echo "📡 Поднимаем backend, bot и frontend (в консоли)..."
