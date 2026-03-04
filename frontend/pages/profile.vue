@@ -29,11 +29,11 @@ function handleLogout() {
 
 <template>
   <div>
-    <AppHeader show-back />
+    <main class="mx-auto max-w-lg px-4 py-5">
+      <AppHeader show-back />
 
-    <main class="mx-auto max-w-lg px-4 py-6">
       <!-- Balance card -->
-      <div class="rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 p-5 text-white">
+      <div class="mt-4 rounded-2xl bg-gradient-to-br from-primary to-blue-600 p-5 text-white">
         <p class="text-2xl font-bold">
           {{ authStore.user?.balance ?? 0 }} <span class="text-base font-normal">бонусов</span>
         </p>
