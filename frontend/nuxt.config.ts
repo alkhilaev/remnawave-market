@@ -30,7 +30,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:3000/api/v1',
-      appName: 'REMNAWAVE',
+      appName: 'Remnawave Market',
       appLogo: '',
     },
   },

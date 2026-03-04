@@ -21,8 +21,11 @@ definePageMeta({
   layout: 'auth',
 })
 
+const config = useRuntimeConfig()
+const appName = config.public.appName as string
+
 useHead({
-  title: 'Регистрация — Remnawave Market',
+  title: () => `Регистрация — ${appName}`,
 })
 
 const { $api } = useNuxtApp()
@@ -82,11 +85,8 @@ async function handleTelegramAuth() {
   <div class="flex flex-col gap-6">
     <div class="text-center">
       <h1 class="text-2xl font-bold tracking-tight text-foreground">
-        Remnawave Market
+        {{ appName }}
       </h1>
-      <p class="mt-1 text-sm text-muted-foreground">
-        VPN-подписки
-      </p>
     </div>
 
     <Card>

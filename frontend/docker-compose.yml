@@ -11,10 +11,8 @@ services:
     ports:
       - '3001:3001'
     environment:
-      NUXT_PUBLIC_API_BASE: http://remnawave-market-app:3000/api/v1
-      NUXT_PUBLIC_APP_NAME: ${NUXT_PUBLIC_APP_NAME:-REMNAWAVE}
-      NUXT_PUBLIC_APP_LOGO: ${NUXT_PUBLIC_APP_LOGO:-}
-      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3001
+      NODE_ENV: production
     networks:
       - remnawave-market_remnawave-network
 

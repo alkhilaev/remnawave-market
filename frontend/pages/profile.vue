@@ -8,8 +8,11 @@ definePageMeta({
   middleware: 'auth',
 })
 
+const config = useRuntimeConfig()
+const appName = config.public.appName as string
+
 useHead({
-  title: 'Профиль — Remnawave Market',
+  title: () => `Профиль — ${appName}`,
 })
 
 const authStore = useAuthStore()
