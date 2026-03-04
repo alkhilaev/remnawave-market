@@ -9,27 +9,41 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   showBack: false,
 })
+
+const config = useRuntimeConfig()
+const appName = config.public.appName as string
+const appLogo = config.public.appLogo as string
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 w-full border-b bg-card/80 backdrop-blur-sm">
-    <div class="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
+  <header class="rounded-2xl border bg-card/80 backdrop-blur-sm">
+    <div class="flex h-14 items-center justify-between px-4">
       <NuxtLink to="/" class="flex items-center gap-2">
-        <Shield class="h-6 w-6 text-primary" />
-        <span class="text-base font-bold tracking-tight">REMNAWAVE</span>
+        <img
+          v-if="appLogo"
+          :src="appLogo"
+          :alt="appName"
+          class="h-7 w-7 object-contain"
+        >
+        <Shield v-else class="size-6 text-primary" />
+        <span class="text-base font-bold tracking-tight">{{ appName }}</span>
       </NuxtLink>
 
-      <NuxtLink v-if="!showBack" to="/profile">
-        <Button variant="ghost" size="icon" class="h-9 w-9">
-          <User class="h-5 w-5" />
-        </Button>
-      </NuxtLink>
+      <div class="flex items-center gap-1">
+        <ThemeToggle />
 
-      <NuxtLink v-else to="/">
-        <Button variant="ghost" size="icon" class="h-9 w-9">
-          <X class="h-5 w-5" />
-        </Button>
-      </NuxtLink>
+        <NuxtLink v-if="!showBack" to="/profile">
+          <Button variant="ghost" size="icon" class="size-9">
+            <User class="size-6" />
+          </Button>
+        </NuxtLink>
+
+        <NuxtLink v-else to="/">
+          <Button variant="ghost" size="icon" class="size-9">
+            <X class="size-6" />
+          </Button>
+        </NuxtLink>
+      </div>
     </div>
   </header>
 </template>

@@ -7,6 +7,7 @@ export default defineNuxtConfig({
 
   modules: [
     '@pinia/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/color-mode',
     '@vueuse/nuxt',
   ],
@@ -29,6 +30,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:3000/api/v1',
+      appName: 'REMNAWAVE',
+      appLogo: '',
     },
   },
 
