@@ -4,8 +4,12 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
+  const baseURL = import.meta.server
+    ? (config.apiBaseInternal as string) || (config.public.apiBase as string)
+    : (config.public.apiBase as string);
+
   const api = $fetch.create({
-    baseURL: config.public.apiBase as string,
+    baseURL,
 
     onRequest({ options }) {
       if (authStore.accessToken) {
@@ -22,7 +26,7 @@ export default defineNuxtPlugin(() => {
       if (response.status === 401 && authStore.refreshToken) {
         try {
           const data = await $fetch<AuthResponse>('/auth/refresh', {
-            baseURL: config.public.apiBase as string,
+            baseURL,
             method: 'POST',
             body: { refreshToken: authStore.refreshToken },
           });

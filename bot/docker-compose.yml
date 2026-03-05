@@ -10,11 +10,10 @@ services:
     env_file:
       - ../.env
     environment:
-      TELEGRAM_API_URL: http://remnawave-market-app:3000/api/v1
       NODE_ENV: ${NODE_ENV:-production}
     networks:
-      - remnawave-market_remnawave-network
+      - remnawave-network
 
 networks:
-  remnawave-market_remnawave-network:
+  remnawave-network:
     external: true

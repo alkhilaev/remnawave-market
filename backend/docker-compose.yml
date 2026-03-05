@@ -51,7 +51,6 @@ services:
     env_file:
       - ../.env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/remnawave_market?schema=public
       NODE_ENV: ${NODE_ENV:-production}
     depends_on:
       postgres:
@@ -83,4 +82,5 @@ volumes:
 
 networks:
   remnawave-network:
+    name: remnawave-network
     driver: bridge

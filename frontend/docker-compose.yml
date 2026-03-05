@@ -14,8 +14,8 @@ services:
       PORT: 3001
       NODE_ENV: production
     networks:
-      - remnawave-market_remnawave-network
+      - remnawave-network
 
 networks:
-  remnawave-market_remnawave-network:
+  remnawave-network:
     external: true
