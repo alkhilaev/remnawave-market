@@ -75,7 +75,7 @@ async function handleTelegramAuth() {
 <template>
   <div class="flex flex-col gap-6">
     <div class="text-center">
-      <h1 class="text-2xl font-bold tracking-tight text-foreground">
+      <h1 class="font-unbounded text-2xl font-bold tracking-tight text-foreground">
         {{ appName }}
       </h1>
     </div>

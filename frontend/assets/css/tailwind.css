@@ -1,9 +1,13 @@
+@import "@fontsource-variable/onest";
+@import "@fontsource-variable/unbounded";
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-onest: 'Onest Variable', sans-serif;
+  --font-unbounded: 'Unbounded Variable', sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -115,6 +119,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-onest;
   }
 }

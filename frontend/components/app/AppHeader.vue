@@ -26,7 +26,7 @@ const appLogo = config.public.appLogo as string
           class="h-7 w-7 object-contain"
         >
         <Shield v-else class="size-6 text-primary" />
-        <span class="text-base font-bold tracking-tight">{{ appName }}</span>
+        <span class="font-unbounded text-base font-bold tracking-tight">{{ appName }}</span>
       </NuxtLink>
 
       <div class="flex items-center gap-1">

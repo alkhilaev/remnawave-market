@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { Rocket, Check } from 'lucide-vue-next'
+import { Zap, Wifi, MessageCircle, Globe, Headset } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { toast } from 'vue-sonner'
 
+const platforms = ['iOS', 'Android', 'Windows', 'macOS', 'Linux', 'Android TV', 'Apple TV']
+
 const features = [
-  'Неблокируемый VPN',
-  'Высокая скорость',
-  'Без ограничений трафика',
-  'Поддержка всех устройств',
+  { icon: Zap, text: 'Высокая скорость соединения' },
+  { icon: MessageCircle, text: 'YouTube в 8K, Telegram и WhatsApp без сбоев' },
+  { icon: Globe, text: 'Российские сайты без отключения VPN' },
+  { icon: Wifi, text: 'Безлимитный трафик и одна подписка на все устройства' },
+  { icon: Headset, text: 'Техническая поддержка 24/7' },
 ]
 
 function handleStartTrial() {
@@ -16,33 +19,46 @@ function handleStartTrial() {
 </script>
 
 <template>
-  <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-blue-600 p-6 text-white">
+  <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-blue-600 to-indigo-700 p-6 text-white">
     <!-- Background decoration -->
-    <div class="absolute -right-6 -top-6 h-32 w-32 rounded-full bg-white/10" />
-    <div class="absolute -bottom-8 -left-8 h-40 w-40 rounded-full bg-white/5" />
+    <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+    <div class="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-white/5 blur-2xl" />
+    <div class="absolute right-4 top-4 h-20 w-20 rounded-full bg-white/5" />
 
     <div class="relative">
-      <div class="flex items-center gap-3">
-        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
-          <Rocket class="h-6 w-6" />
-        </div>
-        <div>
-          <p class="text-sm font-medium text-white/80">Попробуйте бесплатно</p>
-          <h3 class="text-xl font-bold">3 дня бесплатно</h3>
-        </div>
+      <!-- Header -->
+      <div>
+        <h3 class="font-unbounded text-2xl font-extrabold uppercase tracking-tight">3 дня бесплатно</h3>
+        <p class="mt-1 text-sm text-white/70">Подключайтесь прямо сейчас!</p>
       </div>
 
-      <div class="mt-5 flex flex-col gap-2.5">
-        <div v-for="feature in features" :key="feature" class="flex items-center gap-2.5">
-          <div class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20">
-            <Check class="h-3 w-3" />
+      <!-- Platforms -->
+      <div class="mt-3 flex flex-wrap gap-1.5">
+        <span
+          v-for="p in platforms"
+          :key="p"
+          class="rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-medium"
+        >
+          {{ p }}
+        </span>
+      </div>
+
+      <!-- Divider -->
+      <div class="my-4 h-px bg-white/15" />
+
+      <!-- Features -->
+      <div class="flex flex-col gap-3">
+        <div v-for="feature in features" :key="feature.text" class="flex items-center gap-3">
+          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
+            <component :is="feature.icon" class="h-4 w-4" />
           </div>
-          <span class="text-sm">{{ feature }}</span>
+          <span class="text-sm font-medium">{{ feature.text }}</span>
         </div>
       </div>
 
+      <!-- CTA -->
       <Button
-        class="mt-5 w-full bg-white text-primary font-semibold hover:bg-white/90"
+        class="mt-6 w-full bg-white text-primary font-semibold hover:bg-white/90 h-12 text-base rounded-xl"
         @click="handleStartTrial"
       >
         Начать пробную подписку

@@ -48,7 +48,11 @@ onMounted(async () => {
           />
         </div>
 
-        <TrialPromoCard v-else />
+        <template v-else>
+          <TrialPromoCard />
+
+          <FaqSection class="mt-6 mb-2" />
+        </template>
       </div>
     </main>
   </div>
