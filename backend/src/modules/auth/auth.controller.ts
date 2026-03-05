@@ -1,11 +1,13 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   HttpCode,
   HttpStatus,
   UsePipes,
   ValidationPipe,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -14,6 +16,7 @@ import {
   ApiBadRequestResponse,
   ApiConflictResponse,
   ApiUnauthorizedResponse,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
@@ -23,6 +26,8 @@ import {
   AuthResponseDto,
   TelegramAuthDto,
 } from '../../auth/dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { CurrentUser, CurrentUserData } from './decorators/current-user.decorator';
 
 @ApiTags('Авторизация')
 @Controller('auth')
@@ -70,6 +75,24 @@ export class AuthController {
   })
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(loginDto);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Получение текущего пользователя',
+    description: 'Возвращает актуальные данные авторизованного пользователя',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Данные пользователя',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Невалидный или просроченный токен',
+  })
+  async me(@CurrentUser() user: CurrentUserData) {
+    return { user };
   }
 
   @Post('refresh')

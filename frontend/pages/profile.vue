@@ -17,6 +17,10 @@ useHead({
 
 const authStore = useAuthStore();
 
+onMounted(() => {
+  authStore.fetchUser();
+});
+
 function handleLinkTelegram() {
   toast.info('Привязка Telegram будет доступна позже');
 }

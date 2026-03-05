@@ -8,35 +8,50 @@ export default defineNuxtPlugin(() => {
     ? (config.apiBaseInternal as string) || (config.public.apiBase as string)
     : (config.public.apiBase as string);
 
-  const api = $fetch.create({
-    baseURL,
+  let refreshPromise: Promise<void> | null = null;
 
-    onRequest({ options }) {
-      if (authStore.accessToken) {
-        options.headers =
-          options.headers instanceof Headers
-            ? options.headers
-            : new Headers(options.headers as HeadersInit);
-        options.headers.set('Authorization', `Bearer ${authStore.accessToken}`);
+  async function api<T>(url: string, opts: Parameters<typeof $fetch>[1] = {}): Promise<T> {
+    const headers = new Headers((opts.headers as HeadersInit) ?? {});
+    if (authStore.accessToken) {
+      headers.set('Authorization', `Bearer ${authStore.accessToken}`);
+    }
+
+    try {
+      return await $fetch<T>(url, { ...opts, baseURL, headers });
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } }).response?.status;
+
+      if (status !== 401 || !authStore.refreshToken) {
+        throw err;
       }
-    },
 
-    async onResponseError({ response }) {
-      // Token expired — try refresh
-      if (response.status === 401 && authStore.refreshToken) {
-        try {
-          const data = await $fetch<AuthResponse>('/auth/refresh', {
-            baseURL,
-            method: 'POST',
-            body: { refreshToken: authStore.refreshToken },
+      // Deduplicate concurrent refresh calls
+      if (!refreshPromise) {
+        refreshPromise = $fetch<AuthResponse>('/auth/refresh', {
+          baseURL,
+          method: 'POST',
+          body: { refreshToken: authStore.refreshToken },
+        })
+          .then((data) => {
+            authStore.setAuth(data);
+          })
+          .catch(() => {
+            authStore.logout();
+            throw err;
+          })
+          .finally(() => {
+            refreshPromise = null;
           });
-          authStore.setAuth(data);
-        } catch {
-          authStore.logout();
-        }
       }
-    },
-  });
+
+      await refreshPromise;
+
+      // Retry with new token
+      const retryHeaders = new Headers((opts.headers as HeadersInit) ?? {});
+      retryHeaders.set('Authorization', `Bearer ${authStore.accessToken}`);
+      return await $fetch<T>(url, { ...opts, baseURL, headers: retryHeaders });
+    }
+  }
 
   return { provide: { api } };
 });

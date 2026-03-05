@@ -49,7 +49,7 @@ const [password, passwordAttrs] = defineField('password');
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true;
   try {
-    const data = await ($api as typeof $fetch)<AuthResponse>('/auth/login', {
+    const data = await $api<AuthResponse>('/auth/login', {
       method: 'POST',
       body: values,
     });

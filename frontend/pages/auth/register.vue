@@ -56,7 +56,7 @@ const [confirmPassword, confirmPasswordAttrs] = defineField('confirmPassword');
 const onSubmit = handleSubmit(async (values) => {
   loading.value = true;
   try {
-    const data = await ($api as typeof $fetch)<AuthResponse>('/auth/register', {
+    const data = await $api<AuthResponse>('/auth/register', {
       method: 'POST',
       body: {
         email: values.email,

@@ -15,6 +15,12 @@ export const useAuthStore = defineStore(
       refreshToken.value = data.refreshToken;
     }
 
+    async function fetchUser() {
+      const { $api } = useNuxtApp();
+      const data = await $api<{ user: User }>('/auth/me');
+      user.value = data.user;
+    }
+
     function logout() {
       user.value = null;
       accessToken.value = null;
@@ -28,6 +34,7 @@ export const useAuthStore = defineStore(
       refreshToken,
       isAuthenticated,
       setAuth,
+      fetchUser,
       logout,
     };
   },
