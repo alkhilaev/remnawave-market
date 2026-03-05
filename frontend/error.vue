@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { NuxtError } from '#app'
+import type { NuxtError } from '#app';
 
 defineProps<{
-  error: NuxtError
-}>()
+  error: NuxtError;
+}>();
 
-const handleError = () => clearError({ redirect: '/' })
+const handleError = () => clearError({ redirect: '/' });
 </script>
 
 <template>

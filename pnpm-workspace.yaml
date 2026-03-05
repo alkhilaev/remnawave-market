@@ -1,2 +1,4 @@
 packages:
   - 'backend'
+  - 'bot'
+  - 'frontend'

@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { HelpCircle } from 'lucide-vue-next'
+import { HelpCircle } from 'lucide-vue-next';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion'
+} from '@/components/ui/accordion';
 
-const config = useRuntimeConfig()
-const appName = config.public.appName as string
+const config = useRuntimeConfig();
+const appName = config.public.appName as string;
 
 const faq = computed(() => [
   {
@@ -35,14 +35,14 @@ const faq = computed(() => [
     q: 'На скольких устройствах можно использовать?',
     a: 'Количество устройств зависит от выбранного тарифа. Пробный период включает подключение на одном устройстве.',
   },
-])
+]);
 </script>
 
 <template>
   <div class="rounded-2xl border bg-card p-5">
     <div class="flex items-center gap-2.5">
-      <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-        <HelpCircle class="h-5 w-5 text-primary" />
+      <div class="flex size-9 items-center justify-center rounded-xl bg-primary/10">
+        <HelpCircle class="size-5 text-primary" />
       </div>
       <h3 class="font-unbounded text-base font-bold">Частые вопросы</h3>
     </div>
@@ -52,9 +52,9 @@ const faq = computed(() => [
         v-for="(item, i) in faq"
         :key="i"
         :value="`item-${i}`"
-        class="border-b-0 rounded-xl mb-2 last:mb-0 bg-muted/50 px-4"
+        class="mb-2 rounded-xl border-b-0 bg-muted/50 px-4 last:mb-0"
       >
-        <AccordionTrigger class="text-sm text-left hover:no-underline py-3.5">
+        <AccordionTrigger class="py-3.5 text-left text-sm hover:no-underline">
           {{ item.q }}
         </AccordionTrigger>
         <AccordionContent class="text-sm text-muted-foreground">

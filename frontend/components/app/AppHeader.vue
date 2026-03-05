@@ -1,30 +1,25 @@
 <script setup lang="ts">
-import { Shield, User, X } from 'lucide-vue-next'
-import { Button } from '@/components/ui/button'
+import { Shield, User, X } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
 
 interface Props {
-  showBack?: boolean
+  showBack?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
   showBack: false,
-})
+});
 
-const config = useRuntimeConfig()
-const appName = config.public.appName as string
-const appLogo = config.public.appLogo as string
+const config = useRuntimeConfig();
+const appName = config.public.appName as string;
+const appLogo = config.public.appLogo as string;
 </script>
 
 <template>
   <header class="rounded-2xl border bg-card/80 backdrop-blur-sm">
     <div class="flex h-14 items-center justify-between px-4">
       <NuxtLink to="/" class="flex items-center gap-2">
-        <img
-          v-if="appLogo"
-          :src="appLogo"
-          :alt="appName"
-          class="h-7 w-7 object-contain"
-        >
+        <img v-if="appLogo" :src="appLogo" :alt="appName" class="size-7 object-contain" />
         <Shield v-else class="size-6 text-primary" />
         <span class="font-unbounded text-base font-bold tracking-tight">{{ appName }}</span>
       </NuxtLink>

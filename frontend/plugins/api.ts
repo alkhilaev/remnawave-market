@@ -1,18 +1,19 @@
-import type { AuthResponse } from '~/types/auth'
+import type { AuthResponse } from '~/types/auth';
 
 export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig()
-  const authStore = useAuthStore()
+  const config = useRuntimeConfig();
+  const authStore = useAuthStore();
 
   const api = $fetch.create({
     baseURL: config.public.apiBase as string,
 
     onRequest({ options }) {
       if (authStore.accessToken) {
-        options.headers = options.headers instanceof Headers
-          ? options.headers
-          : new Headers(options.headers as HeadersInit)
-        options.headers.set('Authorization', `Bearer ${authStore.accessToken}`)
+        options.headers =
+          options.headers instanceof Headers
+            ? options.headers
+            : new Headers(options.headers as HeadersInit);
+        options.headers.set('Authorization', `Bearer ${authStore.accessToken}`);
       }
     },
 
@@ -24,15 +25,14 @@ export default defineNuxtPlugin(() => {
             baseURL: config.public.apiBase as string,
             method: 'POST',
             body: { refreshToken: authStore.refreshToken },
-          })
-          authStore.setAuth(data)
-        }
-        catch {
-          authStore.logout()
+          });
+          authStore.setAuth(data);
+        } catch {
+          authStore.logout();
         }
       }
     },
-  })
+  });
 
-  return { provide: { api } }
-})
+  return { provide: { api } };
+});

@@ -17,6 +17,10 @@
     "bot/src/**/*.ts": [
       "bash -c 'cd bot && npx eslint --fix \"$@\"' _",
       "bash -c 'cd bot && npx prettier --write \"$@\"' _"
+    ],
+    "frontend/**/*.{ts,vue}": [
+      "bash -c 'cd frontend && npx eslint --fix \"$@\"' _",
+      "bash -c 'cd frontend && npx prettier --write \"$@\"' _"
     ]
   }
 }

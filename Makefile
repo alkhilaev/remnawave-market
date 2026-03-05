@@ -45,7 +45,7 @@ help:
 
 up:
 	@echo "🚀 Поднимаем backend..."
-	@docker compose up -d --build
+	@cd backend && docker compose up -d --build
 	@echo "🤖 Поднимаем bot..."
 	@cd bot && docker compose up -d --build
 	@echo "🌐 Поднимаем frontend..."
@@ -62,7 +62,7 @@ down:
 	@echo "🤖 Останавливаем bot..."
 	@cd bot && docker compose down || true
 	@echo "🛑 Останавливаем backend..."
-	@docker compose down
+	@cd backend && docker compose down
 	@echo "✅ Все контейнеры остановлены"
 
 reload:
@@ -74,7 +74,7 @@ reloadf:
 	@$(MAKE) upf
 
 logs:
-	@docker compose logs -f &
+	@cd backend && docker compose logs -f &
 	@cd bot && docker compose logs -f &
 	@cd frontend && docker compose logs -f
 
@@ -84,14 +84,14 @@ clean:
 	@echo "🤖 Удаляем bot..."
 	@cd bot && docker compose down -v || true
 	@echo "🗑️  Удаляем backend..."
-	@docker compose down -v
+	@cd backend && docker compose down -v
 	@echo "✅ Все удалено"
 
 # ─── Backend ───
 
 up-app:
 	@echo "🚀 Поднимаем backend..."
-	@docker compose up -d --build
+	@cd backend && docker compose up -d --build
 	@echo "✅ Backend запущен"
 
 upf-app:
@@ -100,7 +100,7 @@ upf-app:
 
 down-app:
 	@echo "🛑 Останавливаем backend..."
-	@docker compose down
+	@cd backend && docker compose down
 
 reload-app:
 	@$(MAKE) down-app
@@ -111,7 +111,7 @@ reloadf-app:
 	@$(MAKE) upf-app
 
 logs-app:
-	@docker compose logs -f app
+	@cd backend && docker compose logs -f app
 
 # ─── Bot ───
 

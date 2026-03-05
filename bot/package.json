@@ -1,7 +1,7 @@
 {
   "name": "remnawave-market-bot",
   "version": "1.0.0",
-  "description": "Telegram бот для Remnawave Market",
+  "description": "Remnawave Market Bot — Telegram-бот на Telegraf",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -31,11 +31,5 @@
     "prettier": "^3.4.2",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
-  },
-  "lint-staged": {
-    "src/**/*.ts": [
-      "eslint --fix",
-      "prettier --write"
-    ]
   }
 }
