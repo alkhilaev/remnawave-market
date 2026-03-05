@@ -41,7 +41,7 @@ services:
   # NestJS Application
   app:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
       target: builder
     container_name: remnawave-market-app
@@ -49,7 +49,7 @@ services:
     ports:
       - '3000:3000'
     env_file:
-      - .env
+      - ../.env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/remnawave_market?schema=public
       NODE_ENV: ${NODE_ENV:-production}

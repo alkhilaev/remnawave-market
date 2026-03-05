@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Zap, Wifi, MessageCircle, Globe, Headset } from 'lucide-vue-next'
-import { Button } from '@/components/ui/button'
-import { toast } from 'vue-sonner'
+import { Zap, Wifi, MessageCircle, Globe, Headset } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
+import { toast } from 'vue-sonner';
 
-const platforms = ['iOS', 'Android', 'Windows', 'macOS', 'Linux', 'Android TV', 'Apple TV']
+const platforms = ['iOS', 'Android', 'Windows', 'macOS', 'Linux', 'Android TV', 'Apple TV'];
 
 const features = [
   { icon: Zap, text: 'Высокая скорость соединения' },
@@ -11,24 +11,28 @@ const features = [
   { icon: Globe, text: 'Российские сайты без отключения VPN' },
   { icon: Wifi, text: 'Безлимитный трафик и одна подписка на все устройства' },
   { icon: Headset, text: 'Техническая поддержка 24/7' },
-]
+];
 
 function handleStartTrial() {
-  toast.info('Пробная подписка будет доступна позже')
+  toast.info('Пробная подписка будет доступна позже');
 }
 </script>
 
 <template>
-  <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-blue-600 to-indigo-700 p-6 text-white">
+  <div
+    class="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary via-blue-600 to-indigo-700 p-6 text-white"
+  >
     <!-- Background decoration -->
-    <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-    <div class="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-white/5 blur-2xl" />
-    <div class="absolute right-4 top-4 h-20 w-20 rounded-full bg-white/5" />
+    <div class="absolute -top-10 -right-10 size-40 rounded-full bg-white/10 blur-2xl" />
+    <div class="absolute -bottom-12 -left-12 size-48 rounded-full bg-white/5 blur-2xl" />
+    <div class="absolute top-4 right-4 size-20 rounded-full bg-white/5" />
 
     <div class="relative">
       <!-- Header -->
       <div>
-        <h3 class="font-unbounded text-2xl font-extrabold uppercase tracking-tight">3 дня бесплатно</h3>
+        <h3 class="font-unbounded text-2xl font-extrabold tracking-tight uppercase">
+          3 дня бесплатно
+        </h3>
         <p class="mt-1 text-sm text-white/70">Подключайтесь прямо сейчас!</p>
       </div>
 
@@ -49,8 +53,8 @@ function handleStartTrial() {
       <!-- Features -->
       <div class="flex flex-col gap-3">
         <div v-for="feature in features" :key="feature.text" class="flex items-center gap-3">
-          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
-            <component :is="feature.icon" class="h-4 w-4" />
+          <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
+            <component :is="feature.icon" class="size-4" />
           </div>
           <span class="text-sm font-medium">{{ feature.text }}</span>
         </div>
@@ -58,7 +62,7 @@ function handleStartTrial() {
 
       <!-- CTA -->
       <Button
-        class="mt-6 w-full bg-white text-primary font-semibold hover:bg-white/90 h-12 text-base rounded-xl"
+        class="mt-6 h-12 w-full rounded-xl bg-white text-base font-semibold text-primary hover:bg-white/90"
         @click="handleStartTrial"
       >
         Начать пробную подписку

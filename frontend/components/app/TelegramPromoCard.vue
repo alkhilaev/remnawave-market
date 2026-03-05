@@ -1,34 +1,32 @@
 <script setup lang="ts">
-import { Monitor, Settings, Wifi, Headphones } from 'lucide-vue-next'
-import { Button } from '@/components/ui/button'
+import { Monitor, Settings, Wifi, Headphones } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
 
-const botUrl = 'https://t.me/remnawave_bot'
+const botUrl = 'https://t.me/remnawave_bot';
 </script>
 
 <template>
-  <div class="rounded-2xl bg-gradient-to-br from-blue-400 to-blue-500 p-5 text-white">
-    <h3 class="text-base font-semibold leading-tight">
-      Управляйте подпиской в нашем телеграм-боте
-    </h3>
-    <p class="mt-2 text-sm leading-snug text-white/80">
+  <div class="rounded-2xl bg-linear-to-br from-blue-400 to-blue-500 p-5 text-white">
+    <h3 class="text-base/tight font-semibold">Управляйте подпиской в нашем телеграм-боте</h3>
+    <p class="mt-2 text-sm/snug text-white/80">
       Скоро всё будет доступно прямо здесь. А пока — воспользуйтесь нашим телеграм-ботом.
     </p>
 
     <div class="mt-4 flex flex-col gap-2.5">
       <div class="flex items-center gap-3">
-        <Monitor class="h-5 w-5 shrink-0 text-white/90" />
+        <Monitor class="size-5 shrink-0 text-white/90" />
         <span class="text-sm">Продлевайте подписку</span>
       </div>
       <div class="flex items-center gap-3">
-        <Settings class="h-5 w-5 shrink-0 text-white/90" />
+        <Settings class="size-5 shrink-0 text-white/90" />
         <span class="text-sm">Настраивайте параметры VPN</span>
       </div>
       <div class="flex items-center gap-3">
-        <Wifi class="h-5 w-5 shrink-0 text-white/90" />
+        <Wifi class="size-5 shrink-0 text-white/90" />
         <span class="text-sm">Докупайте пакеты трафика</span>
       </div>
       <div class="flex items-center gap-3">
-        <Headphones class="h-5 w-5 shrink-0 text-white/90" />
+        <Headphones class="size-5 shrink-0 text-white/90" />
         <span class="text-sm">Поддержка с 10 до 22 МСК</span>
       </div>
     </div>
