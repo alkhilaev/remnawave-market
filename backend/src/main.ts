@@ -6,6 +6,7 @@ import { WinstonModule } from 'nest-winston';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { winstonConfig } from '@common/config/winston.config';
 
@@ -23,6 +24,9 @@ async function bootstrap() {
 
   // Validation pipe (nestjs-zod)
   app.useGlobalPipes(new ZodValidationPipe());
+
+  // Cookie parser
+  app.use(cookieParser());
 
   // Security middlewares
   app.use(

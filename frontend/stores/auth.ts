@@ -4,15 +4,11 @@ export const useAuthStore = defineStore(
   'auth',
   () => {
     const user = ref<User | null>(null);
-    const accessToken = ref<string | null>(null);
-    const refreshToken = ref<string | null>(null);
 
-    const isAuthenticated = computed(() => !!accessToken.value);
+    const isAuthenticated = computed(() => !!user.value);
 
     function setAuth(data: AuthResponse) {
       user.value = data.user;
-      accessToken.value = data.accessToken;
-      refreshToken.value = data.refreshToken;
     }
 
     async function fetchUser() {
@@ -21,17 +17,19 @@ export const useAuthStore = defineStore(
       user.value = data.user;
     }
 
-    function logout() {
+    async function logout() {
+      try {
+        const { $api } = useNuxtApp();
+        await $api('/auth/logout', { method: 'POST' });
+      } catch {
+        // ignore logout errors
+      }
       user.value = null;
-      accessToken.value = null;
-      refreshToken.value = null;
       navigateTo('/auth/login');
     }
 
     return {
       user,
-      accessToken,
-      refreshToken,
       isAuthenticated,
       setAuth,
       fetchUser,

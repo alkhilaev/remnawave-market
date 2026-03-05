@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 import { UserRepository } from '@common/repositories/user.repository';
 import bcrypt from 'bcrypt';
 import { RegisterDto, LoginDto, AuthResponseDto, TelegramAuthDto } from '../../auth/dto';
@@ -261,5 +262,56 @@ export class AuthService {
       role: user.role,
       balance: Number(user.balance),
     };
+  }
+
+  setTokenCookies(res: Response, tokens: { accessToken: string; refreshToken: string }): void {
+    const apiPrefix = this.configService.get('API_PREFIX') || 'api/v1';
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
+
+    const accessMaxAge = this.parseExpiration(
+      this.configService.getOrThrow<string>('JWT_ACCESS_TOKEN_EXPIRATION'),
+    );
+    const refreshMaxAge = this.parseExpiration(
+      this.configService.getOrThrow<string>('JWT_REFRESH_TOKEN_EXPIRATION'),
+    );
+
+    res.cookie('access_token', tokens.accessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      path: `/${apiPrefix}`,
+      maxAge: accessMaxAge,
+    });
+
+    res.cookie('refresh_token', tokens.refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      path: `/${apiPrefix}/auth/refresh`,
+      maxAge: refreshMaxAge,
+    });
+  }
+
+  clearTokenCookies(res: Response): void {
+    const apiPrefix = this.configService.get('API_PREFIX') || 'api/v1';
+
+    res.clearCookie('access_token', { path: `/${apiPrefix}` });
+    res.clearCookie('refresh_token', { path: `/${apiPrefix}/auth/refresh` });
+  }
+
+  private parseExpiration(str: string): number {
+    const match = str.match(/^(\d+)([smhd])$/);
+    if (!match) {
+      return 15 * 60 * 1000; // fallback 15m
+    }
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+    const multipliers: Record<string, number> = {
+      s: 1000,
+      m: 60 * 1000,
+      h: 60 * 60 * 1000,
+      d: 24 * 60 * 60 * 1000,
+    };
+    return value * multipliers[unit];
   }
 }

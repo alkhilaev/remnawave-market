@@ -8,8 +8,6 @@ export interface User {
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
   user: User;
 }
 
@@ -28,10 +26,6 @@ export interface TelegramAuthRequest {
   telegramUsername?: string;
   telegramFirstName?: string;
   telegramLastName?: string;
-}
-
-export interface RefreshTokenRequest {
-  refreshToken: string;
 }
 
 export interface ApiError {
