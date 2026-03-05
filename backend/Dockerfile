@@ -12,7 +12,7 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
 
 # Копируем файлы зависимостей
-COPY package.json pnpm-workspace.yaml .npmrc ./
+COPY package.json .npmrc ./
 COPY prisma ./prisma/
 
 # Устанавливаем все зависимости (включая dev)
@@ -45,7 +45,7 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
 
 # Копируем файлы зависимостей
-COPY package.json pnpm-workspace.yaml .npmrc ./
+COPY package.json .npmrc ./
 COPY prisma ./prisma/
 
 # Устанавливаем зависимости
@@ -74,7 +74,7 @@ RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
 WORKDIR /app
 
 # Копируем файлы зависимостей
-COPY package.json pnpm-workspace.yaml .npmrc ./
+COPY package.json .npmrc ./
 COPY prisma ./prisma/
 
 # Устанавливаем только production зависимости

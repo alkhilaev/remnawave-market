@@ -41,7 +41,7 @@ services:
   # NestJS Application
   app:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
       target: builder
     container_name: remnawave-market-app

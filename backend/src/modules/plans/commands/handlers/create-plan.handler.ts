@@ -6,7 +6,6 @@ import { VPNPlanEntity } from '@common/entities/vpn-plan.entity';
 import { CreatePlanCommand } from '../create-plan.command';
 import { PlanCreatedEvent } from '../../events/plan-created.event';
 import { HttpExceptionWithErrorCode } from '@common/exceptions/http-exception-with-error-code';
-import { ERRORS } from '@common/constants/errors';
 
 /**
  * Handler для создания тарифного плана
