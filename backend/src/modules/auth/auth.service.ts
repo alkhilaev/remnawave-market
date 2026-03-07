@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { UserRepository } from '@common/repositories/user.repository';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { RegisterDto, LoginDto, AuthResponseDto, TelegramAuthDto } from '../../auth/dto';
 import { Role } from '@/generated/prisma/client';
 import { HttpExceptionWithErrorCode } from '@common/exceptions/http-exception-with-error-code';

@@ -19,6 +19,7 @@ import type { AuthResponse, ApiError } from '~/types/auth';
 
 definePageMeta({
   layout: 'auth',
+  middleware: 'guest',
 });
 
 const config = useRuntimeConfig();
